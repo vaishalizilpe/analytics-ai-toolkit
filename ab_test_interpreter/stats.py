@@ -2,13 +2,14 @@
 import numpy as np
 from scipy import stats
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
 class ABTestResult:
     control_rate: float
     treatment_rate: float
-    relative_lift: float
+    relative_lift: Optional[float]  # None when control_rate is 0 (undefined)
     absolute_lift: float
     p_value: float
     is_significant: bool
@@ -16,6 +17,8 @@ class ABTestResult:
     ci_upper: float
     control_n: int
     treatment_n: int
+    control_conversions: int
+    treatment_conversions: int
     power: float
     srm_p_value: float
     srm_flagged: bool
@@ -31,7 +34,8 @@ def run_proportion_test(
 ) -> ABTestResult:
     control_rate = control_conversions / control_n
     treatment_rate = treatment_conversions / treatment_n
-    relative_lift = (treatment_rate - control_rate) / control_rate if control_rate > 0 else 0
+    # None when undefined — callers must handle this before display
+    relative_lift = (treatment_rate - control_rate) / control_rate if control_rate > 0 else None
     absolute_lift = treatment_rate - control_rate
 
     # Two-proportion z-test (manual implementation using scipy.stats.norm)
@@ -49,7 +53,8 @@ def run_proportion_test(
     ci_lower = absolute_lift - z_critical * se
     ci_upper = absolute_lift + z_critical * se
 
-    # Post-hoc power
+    # Post-hoc power — Cohen's d approximation for proportions.
+    # Use arcsine transform (Cohen's h) for more accuracy at extreme rates (near 0 or 1).
     effect_size = abs(absolute_lift) / np.sqrt(
         (control_rate * (1 - control_rate) + treatment_rate * (1 - treatment_rate)) / 2
     ) if (control_rate + treatment_rate) > 0 else 0
@@ -75,6 +80,8 @@ def run_proportion_test(
         ci_upper=ci_upper,
         control_n=control_n,
         treatment_n=treatment_n,
+        control_conversions=control_conversions,
+        treatment_conversions=treatment_conversions,
         power=power,
         srm_p_value=srm_p,
         srm_flagged=srm_flagged,
@@ -82,6 +89,7 @@ def run_proportion_test(
 
 
 def _compute_power(effect_size: float, n: float, alpha: float) -> float:
+    # Assumes equal split between control and treatment (n/2 per variant).
     if effect_size == 0:
         return alpha
     z_alpha = stats.norm.ppf(1 - alpha / 2)

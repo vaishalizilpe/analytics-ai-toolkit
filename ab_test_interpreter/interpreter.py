@@ -11,9 +11,9 @@ Experiment context: {experiment_context}
 Metric: {metric_name}
 
 Results:
-- Control: {result.control_rate:.4f} ({result.control_n:,} users, {int(result.control_rate * result.control_n):,} conversions)
-- Treatment: {result.treatment_rate:.4f} ({result.treatment_n:,} users, {int(result.treatment_rate * result.treatment_n):,} conversions)
-- Relative lift: {result.relative_lift:+.2%}
+- Control: {result.control_rate:.4f} ({result.control_n:,} users, {result.control_conversions:,} conversions)
+- Treatment: {result.treatment_rate:.4f} ({result.treatment_n:,} users, {result.treatment_conversions:,} conversions)
+- Relative lift: {f"{result.relative_lift:+.2%}" if result.relative_lift is not None else "undefined (0% control rate)"}
 - Absolute lift: {result.absolute_lift:+.4f}
 - 95% CI on absolute lift: [{result.ci_lower:+.4f}, {result.ci_upper:+.4f}]
 - p-value: {result.p_value:.4f}

@@ -1,9 +1,11 @@
 CLAUDE_MODEL = "claude-sonnet-4-6"
 
-CONFIDENCE_LEVELS = {
-    "high": {"threshold": 0.95, "label": "High Confidence"},
-    "medium": {"threshold": 0.90, "label": "Medium Confidence"},
-    "low": {"threshold": 0.80, "label": "Low Confidence"},
+# Alpha levels for significance testing — named by what they are, not by confidence label.
+# Alpha 0.05 corresponds to 95% confidence, 0.01 to 99%, etc.
+ALPHA_THRESHOLDS = {
+    "strict": 0.01,
+    "standard": 0.05,
+    "lenient": 0.10,
 }
 
 SIGNIFICANCE_THRESHOLD = 0.05

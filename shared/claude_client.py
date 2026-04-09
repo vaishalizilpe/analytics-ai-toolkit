@@ -5,14 +5,19 @@ from shared.constants import CLAUDE_MODEL
 
 load_dotenv()
 
+_client: anthropic.Anthropic | None = None
+
 
 def get_client() -> anthropic.Anthropic:
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise EnvironmentError(
-            "ANTHROPIC_API_KEY not found. Copy .env.example to .env and add your key."
-        )
-    return anthropic.Anthropic(api_key=api_key)
+    global _client
+    if _client is None:
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise EnvironmentError(
+                "ANTHROPIC_API_KEY not found. Copy .env.example to .env and add your key."
+            )
+        _client = anthropic.Anthropic(api_key=api_key)
+    return _client
 
 
 def ask_claude(system_prompt: str, user_message: str, max_tokens: int = 1500) -> str:

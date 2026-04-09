@@ -8,6 +8,7 @@ import json
 from ab_test_interpreter.stats import run_proportion_test, minimum_detectable_effect
 from ab_test_interpreter.interpreter import interpret_results, build_handoff_context
 from ab_test_interpreter.visualizations import confidence_interval_plot, conversion_rate_bar, power_gauge
+from shared.constants import MIN_SAMPLE_SIZE
 
 st.set_page_config(
     page_title="A/B Test Interpreter",
@@ -43,7 +44,7 @@ with st.form("ab_test_form"):
                     "Launched to 50% of users for 14 days. Primary metric: purchase conversion rate.",
         height=100,
     )
-    metric_name = st.text_input("Primary metric name", value="Purchase conversion rate")
+    metric_name = st.text_input("Primary metric name", value="", placeholder="e.g. Purchase conversion rate")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -66,6 +67,17 @@ if submitted:
     if not experiment_context.strip():
         st.warning("Please describe the experiment so Claude can provide meaningful context.")
         st.stop()
+    if not metric_name.strip():
+        st.warning("Please enter a metric name.")
+        st.stop()
+    if int(control_conv) > int(control_n):
+        st.error("Control conversions cannot exceed control users.")
+        st.stop()
+    if int(treatment_conv) > int(treatment_n):
+        st.error("Treatment conversions cannot exceed treatment users.")
+        st.stop()
+    if int(control_n) < MIN_SAMPLE_SIZE or int(treatment_n) < MIN_SAMPLE_SIZE:
+        st.warning(f"Sample size below minimum ({MIN_SAMPLE_SIZE:,} users). Results may not be reliable.")
 
     with st.spinner("Running statistical tests..."):
         result = run_proportion_test(
@@ -88,11 +100,9 @@ if submitted:
     # ── Key metrics row ─────────────────────────────────────────────────
     st.subheader("Results at a Glance")
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric(
-        "Relative Lift",
-        f"{result.relative_lift:+.2%}",
-        delta=f"{'↑' if result.relative_lift > 0 else '↓'} vs control",
-    )
+    lift_display = f"{result.relative_lift:+.2%}" if result.relative_lift is not None else "undefined"
+    lift_delta = f"{'↑' if (result.relative_lift or 0) > 0 else '↓'} vs control" if result.relative_lift is not None else "0% control rate"
+    m1.metric("Relative Lift", lift_display, delta=lift_delta)
     m2.metric("p-value", f"{result.p_value:.4f}", delta="sig." if result.is_significant else "not sig.")
     m3.metric("Control rate", f"{result.control_rate:.3%}")
     m4.metric("Treatment rate", f"{result.treatment_rate:.3%}")
@@ -108,14 +118,16 @@ if submitted:
         st.plotly_chart(conversion_rate_bar(result, metric_name), use_container_width=True)
     with col_chart3:
         st.plotly_chart(power_gauge(result.power), use_container_width=True)
+        st.caption("*Post-hoc power is for reference. Pre-register with target ≥80% power before running tests.")
 
     # ── MDE reference ───────────────────────────────────────────────────
     mde = minimum_detectable_effect(
         n_per_variant=min(int(control_n), int(treatment_n)),
         baseline_rate=result.control_rate,
     )
+    mde_relative = f" ({mde/result.control_rate:.2%} relative)" if result.control_rate > 0 else ""
     st.caption(
-        f"Minimum detectable effect at 80% power with this sample size: ±{mde:.4f} absolute ({mde/result.control_rate:.2%} relative)"
+        f"Minimum detectable effect at 80% power with this sample size: ±{mde:.4f} absolute{mde_relative}"
     )
 
     # ── Claude interpretation ────────────────────────────────────────────

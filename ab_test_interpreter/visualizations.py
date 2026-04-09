@@ -17,18 +17,16 @@ def confidence_interval_plot(result: ABTestResult, metric_name: str) -> go.Figur
     )
 
     fig.add_trace(go.Scatter(
-        x=[result.ci_lower, result.ci_upper],
-        y=["Absolute lift", "Absolute lift"],
-        mode="lines",
+        x=[result.ci_lower, result.absolute_lift, result.ci_upper],
+        y=["Absolute lift", "Absolute lift", "Absolute lift"],
+        mode="lines+markers",
         line=dict(color=color, width=6),
+        marker=dict(
+            color=[color, color, color],
+            size=[8, 14, 8],
+            symbol=["line-ns", "diamond", "line-ns"],
+        ),
         name="95% CI",
-    ))
-    fig.add_trace(go.Scatter(
-        x=[result.absolute_lift],
-        y=["Absolute lift"],
-        mode="markers",
-        marker=dict(color=color, size=14, symbol="diamond"),
-        name="Point estimate",
     ))
 
     title_suffix = "SIGNIFICANT" if result.is_significant else "NOT SIGNIFICANT"
@@ -46,7 +44,7 @@ def confidence_interval_plot(result: ABTestResult, metric_name: str) -> go.Figur
 def conversion_rate_bar(result: ABTestResult, metric_name: str) -> go.Figure:
     fig = go.Figure(data=[
         go.Bar(
-            name="Control",
+            name=metric_name,
             x=["Control", "Treatment"],
             y=[result.control_rate, result.treatment_rate],
             marker_color=["#3498db", "#2ecc71" if result.absolute_lift >= 0 else "#e74c3c"],
@@ -67,10 +65,12 @@ def conversion_rate_bar(result: ABTestResult, metric_name: str) -> go.Figure:
 
 def power_gauge(power: float) -> go.Figure:
     color = "#2ecc71" if power >= 0.8 else ("#f39c12" if power >= 0.6 else "#e74c3c")
+    # Post-hoc power is shown for reference only — it is mathematically linked to p-value
+    # and should not substitute for pre-registered power analysis.
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=power * 100,
-        title={"text": "Post-hoc Power (%)"},
+        title={"text": "Post-hoc Power (%)*"},
         gauge={
             "axis": {"range": [0, 100]},
             "bar": {"color": color},
