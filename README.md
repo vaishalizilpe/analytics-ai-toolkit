@@ -2,6 +2,10 @@
 
 An AI-powered analytics reasoning suite built with Claude + Streamlit. Three interconnected tools that mirror how senior analysts actually think — not just dashboards, but reasoning engines.
 
+## Live Demo
+
+👉 [Try the A/B Test Interpreter](https://analytics-ai-toolkit-vz.streamlit.app)
+
 ## Tools
 
 | Tool | Status | Description |
