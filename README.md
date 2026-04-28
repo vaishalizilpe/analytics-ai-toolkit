@@ -35,13 +35,11 @@ pip install -r requirements.txt
 cp .env.example .env        # add your ANTHROPIC_API_KEY
 ```
 
-Run each tool in a separate terminal:
-
 ```bash
-streamlit run ab_test_interpreter/app.py     # localhost:8501
-streamlit run root_cause_analysis/app.py     # localhost:8502
-streamlit run metric_tradeoffs/app.py        # localhost:8503
+streamlit run app.py
 ```
+
+All three tools load from one URL. Use the sidebar to navigate between them.
 
 ## Tool breakdown
 
