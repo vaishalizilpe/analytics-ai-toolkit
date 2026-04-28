@@ -6,24 +6,24 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 import json
 import streamlit as st
 from root_cause_analysis.rca import analyze_metric_movement, DIAGNOSTIC_QUERIES
+from shared.ui import inject_css, render_sidebar, hero
 
 st.set_page_config(page_title="Root Cause Analysis", page_icon="🔍", layout="wide")
+inject_css()
+render_sidebar("Root Cause Analysis")
 
-with st.sidebar:
-    st.caption("Powered by Claude · [GitHub](https://github.com/vaishalizilpe/analytics-ai-toolkit)")
-
-st.title("🔍 Root Cause Analysis")
-st.markdown(
+hero(
+    "🔍",
+    "Root Cause Analysis",
     "Describe a metric movement. Get a structured hypothesis matrix, diagnostic SQL templates, "
-    "and AI-powered analysis — organized by priority."
+    "and AI-powered analysis — organized by priority.",
 )
 
 with st.expander("Import experiment context from A/B Test Interpreter (optional)"):
     handoff_raw = st.text_area(
         "Paste experiment JSON",
         placeholder='{"source": "ab_test_interpreter", "metric": "...", "lift": -0.05, ...}',
-        height=90,
-        key="rca_handoff_input",
+        height=90, key="rca_handoff_input",
     )
     handoff = None
     if handoff_raw.strip():
@@ -41,13 +41,12 @@ with st.expander("Import experiment context from A/B Test Interpreter (optional)
             st.error("Invalid JSON.")
             handoff = None
 
-default_metric = handoff.get("metric", "") if handoff else ""
+default_metric    = handoff.get("metric", "") if handoff else ""
 default_magnitude = f"{abs(handoff['lift']):.1%}" if handoff and handoff.get("lift") is not None else ""
-default_context = handoff.get("experiment_context", "") if handoff else ""
+default_context   = handoff.get("experiment_context", "") if handoff else ""
 
 with st.form("rca_form"):
     st.subheader("Describe the Metric Movement")
-
     c1, c2 = st.columns([3, 1])
     with c1:
         metric_name = st.text_input(
@@ -75,16 +74,16 @@ with st.form("rca_form"):
     st.markdown("**Which user segments are affected?**")
     sc1, sc2, sc3, sc4 = st.columns(4)
     with sc1:
-        seg_all = st.checkbox("All users", value=True)
-        seg_new = st.checkbox("New users")
+        seg_all      = st.checkbox("All users", value=True)
+        seg_new      = st.checkbox("New users")
     with sc2:
         seg_returning = st.checkbox("Returning users")
-        seg_mobile = st.checkbox("Mobile")
+        seg_mobile    = st.checkbox("Mobile")
     with sc3:
         seg_desktop = st.checkbox("Desktop")
-        seg_geo = st.checkbox("Specific geo")
+        seg_geo     = st.checkbox("Specific geo")
     with sc4:
-        seg_cohort = st.checkbox("Specific cohort")
+        seg_cohort  = st.checkbox("Specific cohort")
         seg_unknown = st.checkbox("Not yet investigated")
 
     submitted = st.form_submit_button("Analyze", type="primary", use_container_width=True)
@@ -107,10 +106,10 @@ if submitted:
 
     st.subheader("Situation Summary")
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Metric", metric_name)
+    m1.metric("Metric",    metric_name)
     m2.metric("Direction", direction.split()[0].capitalize())
     m3.metric("Magnitude", magnitude)
-    m4.metric("Segments", ", ".join(segments) if segments else "unknown")
+    m4.metric("Segments",  ", ".join(segments) if segments else "unknown")
 
     if known_events.strip():
         st.info(f"Known events: {known_events}")

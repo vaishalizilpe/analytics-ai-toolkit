@@ -6,16 +6,17 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 import json
 import streamlit as st
 from metric_tradeoffs.tradeoffs import analyze_tradeoffs, CHANGE_TYPES
+from shared.ui import inject_css, render_sidebar, hero
 
 st.set_page_config(page_title="Metric Trade-offs", page_icon="⚖️", layout="wide")
+inject_css()
+render_sidebar("Metric Trade-offs")
 
-with st.sidebar:
-    st.caption("Powered by Claude · [GitHub](https://github.com/vaishalizilpe/analytics-ai-toolkit)")
-
-st.title("⚖️ Metric Trade-offs")
-st.markdown(
-    "Describe a metric you want to optimize and the proposed change. "
-    "Get a full metric hierarchy, trade-off surface, guardrail recommendations, and a ship recommendation."
+hero(
+    "⚖️",
+    "Metric Trade-offs",
+    "Describe a metric you want to optimize and the proposed change. Get a full metric hierarchy, "
+    "trade-off surface, guardrail recommendations, and a ship recommendation.",
 )
 
 with st.expander("Import context from A/B Test Interpreter or RCA tool (optional)"):
@@ -33,7 +34,7 @@ with st.expander("Import context from A/B Test Interpreter or RCA tool (optional
             st.error("Invalid JSON.")
             handoff = None
 
-default_metric = handoff.get("metric", "") if handoff else ""
+default_metric  = handoff.get("metric", "") if handoff else ""
 default_context = (handoff.get("experiment_context") or handoff.get("context", "")) if handoff else ""
 
 with st.form("tradeoffs_form"):
@@ -56,7 +57,9 @@ with st.form("tradeoffs_form"):
         "Product / platform context", value=default_context,
         placeholder="e.g. iOS e-commerce app, B2B SaaS, two-sided marketplace", height=75,
     )
-    business_goal = st.text_input("Business goal", placeholder="e.g. Increase Q3 revenue, improve 30-day retention")
+    business_goal = st.text_input(
+        "Business goal", placeholder="e.g. Increase Q3 revenue, improve 30-day retention, reduce churn",
+    )
     secondary_metrics = st.text_input(
         "Other metrics you're tracking (optional)",
         placeholder="e.g. AOV, session length, support ticket rate, NPS",
