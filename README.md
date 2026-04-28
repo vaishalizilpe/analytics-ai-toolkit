@@ -75,8 +75,6 @@ All three tools load from one URL. Use the sidebar to navigate between them.
 
 ### ⚖️ Metric Trade-offs
 
-**Analyze Trade-offs tab**
-
 Input a metric and proposed change. Output:
 - Full metric hierarchy: North Star → Primary → Secondary → Guardrail → Diagnostic
 - Trade-off surface: what likely improves, what's at risk, what's unknown
@@ -84,12 +82,6 @@ Input a metric and proposed change. Output:
 - Guardrail metric recommendations with rollback thresholds
 - Composite metric formula proposal
 - Ship / Don't Ship / Modify recommendation
-
-**Interview Prep: Metric Drill tab**
-
-A practice tool for Staff Data Scientist interviews. Pick a product (Spotify, Airbnb, LinkedIn, Instacart, Apple Pay, and more). Write your own answers to the 5 standard metric definition questions, then generate a model Staff-level answer to compare against.
-
-The 5 questions: North Star Metric, 3 input metrics, 2 guardrail metrics, and 3 hypotheses for a 5% NSM drop.
 
 ## Environment
 
