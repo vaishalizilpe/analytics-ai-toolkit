@@ -22,8 +22,8 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("**Tools**")
     st.markdown("🧪 **A/B Test Interpreter** ← you are here")
-    st.markdown("🔍 Root Cause Analysis *(coming soon)*")
-    st.markdown("⚖️ Metric Trade-offs *(coming soon)*")
+    st.markdown("🔍 [Root Cause Analysis](http://localhost:8502)")
+    st.markdown("⚖️ [Metric Trade-offs](http://localhost:8503)")
     st.markdown("---")
     st.caption("Powered by Claude · [GitHub](https://github.com/vaishalizilpe/analytics-ai-toolkit)")
 
@@ -149,18 +149,16 @@ if submitted:
 
     hcol1, hcol2 = st.columns(2)
     with hcol1:
-        if not result.is_significant or result.relative_lift < 0:
-            st.button(
-                "🔍 Diagnose why this metric didn't move → Root Cause Analysis",
-                help="Coming soon — will pre-load this experiment's context into the RCA tool.",
-                disabled=True,
+        if not result.is_significant or (result.relative_lift is not None and result.relative_lift < 0):
+            st.markdown(
+                "**🔍 Root Cause Analysis** — export the JSON below and paste it into the "
+                "[Root Cause Analysis tool](http://localhost:8502) to diagnose why this metric didn't move."
             )
     with hcol2:
         if result.is_significant:
-            st.button(
-                "⚖️ Analyze metric trade-offs for this change → Metric Trade-offs",
-                help="Coming soon — will pre-load this metric into the Trade-offs tool.",
-                disabled=True,
+            st.markdown(
+                "**⚖️ Metric Trade-offs** — export the JSON below and paste it into the "
+                "[Metric Trade-offs tool](http://localhost:8503) to analyze second-order effects before shipping."
             )
 
     # ── Export context (for manual handoff now) ──────────────────────────
