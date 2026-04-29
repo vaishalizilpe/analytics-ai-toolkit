@@ -6,6 +6,8 @@ An AI-powered analytics reasoning suite built with Claude + Streamlit. Three int
 
 👉 [Try the A/B Test Interpreter](https://analytics-ai-toolkit-vz.streamlit.app)
 
+![Analytics AI Toolkit Demo](analytics_toolkit_demo.gif)
+
 ## Tools
 
 | Tool | Status | Description |
@@ -91,10 +93,6 @@ CLAUDE_MODEL=claude-sonnet-4-6      # optional, defaults to claude-sonnet-4-6
 ```
 
 Never commit your `.env` file. It is in `.gitignore`.
-
-## Demo
-
-![Analytics AI Toolkit Demo](analytics_toolkit_demo.gif)
 
 ## Tech stack
 
