@@ -15,6 +15,7 @@ from ab_test_interpreter.interpreter import interpret_results, interpret_continu
 from ab_test_interpreter.visualizations import (
     confidence_interval_plot, conversion_rate_bar, mean_bar_chart,
     power_curve, mde_curve,
+    null_distribution_chart, lift_vs_mde_chart, beta_posterior_chart,
 )
 from shared.constants import MIN_SAMPLE_SIZE
 
@@ -242,6 +243,12 @@ with tab1:
             else:
                 st.plotly_chart(mean_bar_chart(result, metric_name), use_container_width=True)
 
+        if is_proportion and not result.fisher_used:
+            st.plotly_chart(
+                null_distribution_chart(result.p_value, result.absolute_lift, alpha),
+                use_container_width=True,
+            )
+
         # ── MDE Adequacy (replaces post-hoc power gauge) ──────────────────────
 
         if is_proportion:
@@ -263,19 +270,15 @@ with tab1:
                         st.success("Yes")
                     else:
                         st.error("No")
-                with adeq_cols[1]:
-                    mde_display = f"{mde:.4f} absolute"
+                    mde_display = f"{mde:.4f} abs"
                     if mde_rel is not None:
-                        mde_display += f" ({mde_rel:.1%} relative)"
-                    st.markdown(
-                        f"MDE at this sample size: **{mde_display}**  \n"
-                        f"Observed lift: **{result.absolute_lift:+.4f} absolute**  \n"
-                        + (
-                            "The test had enough power to detect an effect this large."
-                            if adequately_powered else
-                            "The test may have missed real effects smaller than the MDE. "
-                            "Consider a larger sample or a longer run before concluding no effect."
-                        )
+                        mde_display += f" ({mde_rel:.1%} rel)"
+                    st.caption(f"MDE: {mde_display}")
+                    st.caption(f"Observed: {result.absolute_lift:+.4f}")
+                with adeq_cols[1]:
+                    st.plotly_chart(
+                        lift_vs_mde_chart(result.absolute_lift, result.ci_lower, result.ci_upper, mde),
+                        use_container_width=True,
                     )
 
         # ── Bayesian Analysis ────────────────────────────────────────────────
@@ -295,6 +298,14 @@ with tab1:
                 b1, b2 = st.columns(2)
                 b1.metric("P(treatment > control)", f"{prob_wins:.1%}")
                 b2.metric("Expected relative lift", f"{expected_lift:+.2%}")
+                st.plotly_chart(
+                    beta_posterior_chart(
+                        int(control_conv), int(control_n),
+                        int(treatment_conv), int(treatment_n),
+                        prob_wins,
+                    ),
+                    use_container_width=True,
+                )
                 st.caption(
                     "Uniform prior Beta(1,1). With large samples, the posterior converges to the frequentist result. "
                     "At small samples, it regularizes toward 50/50 — which is often more honest than a sharp p-value."
