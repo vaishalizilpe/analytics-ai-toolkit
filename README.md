@@ -1,6 +1,6 @@
 # Analytics AI Toolkit
 
-An AI-powered analytics reasoning suite built with Claude + Streamlit. Three interconnected tools that mirror how senior analysts actually think — not just dashboards, but reasoning engines.
+An AI-powered analytics reasoning suite built with Claude + Streamlit. Four interconnected tools that mirror how senior analysts actually think — not just dashboards, but reasoning engines.
 
 ## Live Demo
 
@@ -12,9 +12,10 @@ An AI-powered analytics reasoning suite built with Claude + Streamlit. Three int
 
 | Tool | Status | Description |
 |------|--------|-------------|
-| 🧪 A/B Test Interpreter | ✅ Live | Statistical analysis (z-test, CI, SRM, power) + AI interpretation + ship/don't-ship recommendation |
+| 🧪 A/B Test Interpreter | ✅ Live | Expert-level statistical analysis + AI interpretation + ship/don't-ship recommendation |
+| 📐 Sample Size Calculator | ✅ Live | Pre-experiment power analysis with sensitivity curves |
 | 🔍 Root Cause Analysis | ✅ Live | Structured hypothesis matrix for metric drops, diagnostic SQL templates, prioritized next steps |
-| ⚖️ Metric Trade-offs | ✅ Live | Second-order effect mapping, metric hierarchy, guardrail recommendations, interview prep drill |
+| ⚖️ Metric Trade-offs | ✅ Live | Second-order effect mapping, metric hierarchy, guardrail recommendations |
 
 ## How the tools connect
 
@@ -41,29 +42,43 @@ cp .env.example .env        # add your ANTHROPIC_API_KEY
 streamlit run app.py
 ```
 
-All three tools load from one URL. Use the sidebar to navigate between them.
+All tools load from one URL. Use the sidebar to navigate between them.
 
 ## Tool breakdown
 
 ### 🧪 A/B Test Interpreter
 
 **Statistical engine**
-- Two-proportion z-test (p-value, significance at configurable alpha)
-- 95% confidence interval on absolute lift
-- Post-hoc power calculation
-- Sample Ratio Mismatch (SRM) detection
-- Minimum Detectable Effect reference
+- Normal approximation validation — falls back to Fisher's exact test when n×p < 10
+- Two-proportion z-test with Cohen's h effect size (arcsine transform, accurate at extreme rates)
+- Welch's t-test for continuous metrics (revenue, duration, engagement)
+- 95% CI on absolute lift (Wald) and relative lift (delta method)
+- Configurable significance threshold (α slider: 0.01–0.20)
+- Multiple testing correction (Bonferroni) when testing multiple metrics simultaneously
+- Sample Ratio Mismatch detection with diagnostic checklist
+- CI vs. p-value consistency check (flags pooled/unpooled SE disagreement)
+- MDE adequacy check: "Was this test adequately powered?" — replaces misleading post-hoc power gauge
+- Practical significance threshold: flags statistically significant but negligible lifts
+- Bayesian analysis: P(treatment > control) via Beta-Binomial simulation
 
 **AI interpretation**
 - Plain-English explanation of what the result means
-- Flags: low power, SRM, novelty effects, peeking
+- Flags: SRM, assumption violations, practical vs. statistical significance gap
 - RECOMMENDATION: Ship / Don't Ship / Extend Test
 - FOLLOW-UP: segments to investigate, guardrail metrics, duration concerns
 
 **Visualizations**
 - Confidence interval forest plot
 - Control vs. Treatment bar chart
-- Post-hoc power gauge
+
+### 📐 Sample Size Calculator
+
+- Conversion rate and continuous metric modes
+- MDE as relative % or absolute units
+- Power curve: statistical power vs. n per variant
+- MDE sensitivity curve: detectable lift vs. n per variant
+- Test duration estimate from daily traffic
+- Configurable α and power targets
 
 ### 🔍 Root Cause Analysis
 
@@ -82,7 +97,6 @@ Input a metric and proposed change. Output:
 - Trade-off surface: what likely improves, what's at risk, what's unknown
 - Acceptable vs. unacceptable trade-offs given business goal
 - Guardrail metric recommendations with rollback thresholds
-- Composite metric formula proposal
 - Ship / Don't Ship / Modify recommendation
 
 ## Environment
