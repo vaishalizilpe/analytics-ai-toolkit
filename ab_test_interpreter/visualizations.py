@@ -91,30 +91,6 @@ def mean_bar_chart(result: ContinuousTestResult, metric_name: str) -> go.Figure:
     return fig
 
 
-def power_gauge(power: float) -> go.Figure:
-    color = "#2ecc71" if power >= 0.8 else ("#f39c12" if power >= 0.6 else "#e74c3c")
-    # Post-hoc power is shown for reference only — it is mathematically linked to p-value
-    # and should not substitute for pre-registered power analysis.
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=power * 100,
-        title={"text": "Post-hoc Power (%)*"},
-        gauge={
-            "axis": {"range": [0, 100]},
-            "bar": {"color": color},
-            "steps": [
-                {"range": [0, 60], "color": "#fadbd8"},
-                {"range": [60, 80], "color": "#fdebd0"},
-                {"range": [80, 100], "color": "#d5f5e3"},
-            ],
-            "threshold": {"line": {"color": "black", "width": 2}, "value": 80},
-        },
-        number={"suffix": "%", "valueformat": ".1f"},
-    ))
-    fig.update_layout(height=250)
-    return fig
-
-
 def null_distribution_chart(p_value: float, absolute_lift: float, alpha: float) -> go.Figure:
     """Standard normal null distribution with rejection regions and observed z-statistic."""
     z_stat = float(scipy_stats.norm.ppf(1 - p_value / 2)) * (1 if absolute_lift >= 0 else -1)

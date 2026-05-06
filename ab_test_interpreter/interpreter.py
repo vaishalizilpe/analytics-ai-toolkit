@@ -25,7 +25,7 @@ def interpret_results(
         if min_practical_effect > 0 else "No practical significance threshold set."
     )
     multi_test_note = (
-        f"Bonferroni-corrected significance threshold (across {n_metrics} metrics): α={corrected_alpha:.4f}. "
+        f"Benjamini-Hochberg FDR threshold (across {n_metrics} metrics): α={corrected_alpha:.4f}. "
         f"p-value {'passes' if result.p_value < corrected_alpha else 'does NOT pass'} the corrected threshold."
         if n_metrics > 1 else "Single metric test — no multiple testing correction applied."
     )

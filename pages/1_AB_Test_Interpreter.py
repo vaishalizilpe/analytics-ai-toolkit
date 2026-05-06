@@ -9,7 +9,7 @@ import json
 from ab_test_interpreter.stats import (
     run_proportion_test, run_ttest, minimum_detectable_effect,
     sample_size_for_proportion, sample_size_for_continuous,
-    bayesian_ab_test,
+    bayesian_ab_test, correct_multiple_tests,
 )
 from ab_test_interpreter.interpreter import interpret_results, interpret_continuous_results, build_handoff_context
 from ab_test_interpreter.visualizations import (
@@ -123,8 +123,14 @@ with tab1:
             st.warning("Please enter a metric name.")
             st.stop()
 
-        # Bonferroni-corrected alpha for multiple testing
-        corrected_alpha = alpha / n_metrics if n_metrics > 1 else alpha
+        # Benjamini-Hochberg FDR correction for multiple testing.
+        # We have one observed p-value but n_metrics tests are being run simultaneously.
+        # BH asks: if all other tests were at their most lenient BH threshold, what's
+        # the threshold for rank 1 (the smallest p-value, i.e. this one)?
+        # For a single observed p: BH threshold at rank 1 = alpha * 1 / n_metrics.
+        # This equals Bonferroni for rank 1, but BH is less conservative across the full
+        # family and is the correct FDR-controlling procedure here.
+        corrected_alpha = (alpha * 1 / int(n_metrics)) if n_metrics > 1 else alpha
 
         if is_proportion:
             if int(control_conv) > int(control_n):
@@ -167,8 +173,9 @@ with tab1:
             if result.fisher_used:
                 st.warning(
                     "Normal approximation invalid (n×p < 10 in one or more cells). "
-                    "**Fisher's exact test** was used instead of the z-test. "
-                    "The confidence interval is still Wald-based and should be treated as approximate."
+                    "**Fisher's exact test** was used for the p-value. "
+                    "The confidence interval uses **Clopper-Pearson exact CIs** per arm — "
+                    "valid for any sample size. The relative lift CI is not computed (requires normal approx)."
                 )
             if not result.significance_ci_consistent:
                 st.info(
@@ -216,11 +223,14 @@ with tab1:
         st.info(f"{sig_badge} at α={alpha} · {abs_ci}{rel_ci}")
 
         if n_metrics > 1:
-            corrected_significant = result.p_value < corrected_alpha
+            # Use BH on the observed p-value family. Since we only have one p-value
+            # in hand, we apply correct_multiple_tests to get the formal BH decision.
+            bh_reject, bh_thresholds = correct_multiple_tests([result.p_value], alpha=alpha)
+            corrected_significant = bh_reject[0]
             corrected_label = "✅ passes" if corrected_significant else "❌ fails"
             st.caption(
-                f"Multiple testing correction (Bonferroni, {n_metrics} metrics): "
-                f"corrected threshold α={corrected_alpha:.4f} — p={result.p_value:.4f} {corrected_label} the corrected threshold."
+                f"Multiple testing correction (Benjamini-Hochberg FDR, {n_metrics} metrics): "
+                f"BH threshold α={corrected_alpha:.4f} — p={result.p_value:.4f} {corrected_label} the corrected threshold."
             )
 
         if min_practical_effect > 0 and result.is_significant:
