@@ -95,18 +95,36 @@ def run_proportion_test(
         p_value = float(p_value)
         fisher_used = True
 
-    # 95% CI on absolute lift (Wald interval — valid when normal approx holds)
-    se = np.sqrt(
-        (control_rate * (1 - control_rate) / control_n)
-        + (treatment_rate * (1 - treatment_rate) / treatment_n)
-    )
     z_critical = stats.norm.ppf(1 - alpha / 2)
-    ci_lower = absolute_lift - z_critical * se
-    ci_upper = absolute_lift + z_critical * se
 
-    # Relative lift CI via delta method
-    # var(p2/p1 - 1) ≈ (1/p1²)*var(p2) + (p2²/p1⁴)*var(p1)
-    if control_rate > 0:
+    if not fisher_used:
+        # Wald CI — valid when normal approximation holds.
+        se = np.sqrt(
+            (control_rate * (1 - control_rate) / control_n)
+            + (treatment_rate * (1 - treatment_rate) / treatment_n)
+        )
+        ci_lower = absolute_lift - z_critical * se
+        ci_upper = absolute_lift + z_critical * se
+    else:
+        # Clopper-Pearson exact CI per arm, then propagate to the difference.
+        # CP lower/upper for each arm: Beta(k, n-k+1) and Beta(k+1, n-k) quantiles.
+        # CI on the difference: (p2_lower - p1_upper, p2_upper - p1_lower) — conservative
+        # but always valid regardless of sample size or conversion rate.
+        alpha_cp = alpha  # same nominal level
+        ctrl_lo = float(stats.beta.ppf(alpha_cp / 2, control_conversions, control_n - control_conversions + 1)) \
+            if control_conversions > 0 else 0.0
+        ctrl_hi = float(stats.beta.ppf(1 - alpha_cp / 2, control_conversions + 1, control_n - control_conversions)) \
+            if control_conversions < control_n else 1.0
+        trt_lo = float(stats.beta.ppf(alpha_cp / 2, treatment_conversions, treatment_n - treatment_conversions + 1)) \
+            if treatment_conversions > 0 else 0.0
+        trt_hi = float(stats.beta.ppf(1 - alpha_cp / 2, treatment_conversions + 1, treatment_n - treatment_conversions)) \
+            if treatment_conversions < treatment_n else 1.0
+        ci_lower = trt_lo - ctrl_hi
+        ci_upper = trt_hi - ctrl_lo
+
+    # Relative lift CI via delta method (requires normal approx — not valid for Fisher fallback).
+    # Set to None when Fisher's was used, matching the treatment of relative_lift itself.
+    if control_rate > 0 and not fisher_used:
         var_p1 = control_rate * (1 - control_rate) / control_n
         var_p2 = treatment_rate * (1 - treatment_rate) / treatment_n
         var_relative = (1 / control_rate ** 2) * var_p2 + (treatment_rate ** 2 / control_rate ** 4) * var_p1
@@ -125,8 +143,9 @@ def run_proportion_test(
 
     # Power via Cohen's h (arcsine transform) — correct for proportions at extreme rates.
     # Retained for MDE adequacy check in the UI; not displayed as a gauge (see Gelman).
+    # Uses harmonic-mean effective n so unequal splits are handled correctly.
     effect_size = abs(cohens_h(control_rate, treatment_rate)) if (control_rate + treatment_rate) > 0 else 0
-    power = _compute_power(effect_size, control_n + treatment_n, alpha)
+    power = _compute_power(effect_size, control_n, treatment_n, alpha)
 
     # Sample Ratio Mismatch
     total = control_n + treatment_n
@@ -161,12 +180,21 @@ def run_proportion_test(
     )
 
 
-def _compute_power(effect_size: float, n: float, alpha: float) -> float:
-    # n is total across both arms; assumes equal split.
+def _compute_power(effect_size: float, n_control: float, n_treatment: float, alpha: float) -> float:
+    """Compute power for a two-sample test.
+
+    Uses the harmonic-mean effective sample size so the formula is correct for
+    both equal and unequal splits.  For an equal 50/50 split this reduces to
+    the familiar sqrt(n/2) expression.
+
+    effective_n = 2 * n_c * n_t / (n_c + n_t)  (harmonic mean of the two arms)
+    power = Φ(d * sqrt(effective_n / 2) - z_α/2)
+    """
     if effect_size == 0:
         return alpha
     z_alpha = stats.norm.ppf(1 - alpha / 2)
-    z_power = effect_size * np.sqrt(n / 2) - z_alpha
+    effective_n = 2 * n_control * n_treatment / (n_control + n_treatment)
+    z_power = effect_size * np.sqrt(effective_n / 2) - z_alpha
     return float(stats.norm.cdf(z_power))
 
 
@@ -205,7 +233,7 @@ def run_ttest(
         / (control_n + treatment_n - 2)
     )
     effect_size = abs(absolute_lift) / pooled_std if pooled_std > 0 else 0
-    power = _compute_power(effect_size, control_n + treatment_n, alpha)
+    power = _compute_power(effect_size, control_n, treatment_n, alpha)
 
     total = control_n + treatment_n
     expected_control = total * expected_split

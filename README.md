@@ -51,13 +51,15 @@ All tools load from one URL. Use the sidebar to navigate between them.
 **Statistical engine**
 - Normal approximation validation — falls back to Fisher's exact test when n×p < 10
 - Two-proportion z-test with Cohen's h effect size (arcsine transform, accurate at extreme rates)
-- Welch's t-test for continuous metrics (revenue, duration, engagement)
-- 95% CI on absolute lift (Wald) and relative lift (delta method)
+- Welch's t-test for continuous metrics (revenue, duration, engagement) with Welch-Satterthwaite df
+- 95% CI on absolute lift: Wald when normal approx holds, Clopper-Pearson exact when Fisher's is used
+- Relative lift CI via delta method
 - Configurable significance threshold (α slider: 0.01–0.20)
-- Multiple testing correction (Bonferroni) when testing multiple metrics simultaneously
+- Multiple testing correction (Benjamini-Hochberg FDR) when testing multiple metrics simultaneously
 - Sample Ratio Mismatch detection with diagnostic checklist
 - CI vs. p-value consistency check (flags pooled/unpooled SE disagreement)
 - MDE adequacy check: "Was this test adequately powered?" — replaces misleading post-hoc power gauge
+- Power formula uses harmonic-mean effective n — correct for both equal and unequal traffic splits
 - Practical significance threshold: flags statistically significant but negligible lifts
 - Bayesian analysis: P(treatment > control) via Beta-Binomial simulation
 
@@ -120,6 +122,17 @@ GEMINI_API_KEY=
 | `gemini` | `gemini-1.5-pro` | `GEMINI_API_KEY` |
 
 Never commit your `.env` file. It is in `.gitignore`.
+
+## Testing
+
+The statistical engine has full unit test coverage. No API keys required.
+
+```bash
+pip install -r requirements-dev.txt
+pytest tests/ -v
+```
+
+Tests cover: proportion z-test, Fisher's exact fallback, SRM detection, Welch's t-test, Bayesian Beta-Binomial, Benjamini-Hochberg FDR correction, sample size formulas, MDE, and power computation across equal and unequal splits.
 
 ## Tech stack
 
