@@ -1,6 +1,6 @@
 # Analytics AI Toolkit
 
-An AI-powered analytics reasoning suite built with Claude + Streamlit. Four interconnected tools that mirror how senior analysts actually think — not just dashboards, but reasoning engines.
+An AI-powered analytics reasoning suite built with Streamlit. Four interconnected tools that mirror how senior analysts actually think — not just dashboards, but reasoning engines. Swap LLM providers (Claude, OpenAI, DeepSeek, Gemini) with a single env var — no code changes required.
 
 ## Live Demo
 
@@ -35,7 +35,7 @@ Copy the JSON from the "Export context" expander in any tool and paste it into t
 git clone https://github.com/vaishalizilpe/analytics-ai-toolkit.git
 cd analytics-ai-toolkit
 pip install -r requirements.txt
-cp .env.example .env        # add your ANTHROPIC_API_KEY
+cp .env.example .env        # set LLM_PROVIDER and add your API key
 ```
 
 ```bash
@@ -102,15 +102,28 @@ Input a metric and proposed change. Output:
 ## Environment
 
 ```
+# Choose your provider — only the matching API key is required
+LLM_PROVIDER=claude          # claude | openai | deepseek | gemini
+LLM_MODEL=                   # optional — overrides the provider default
+
 ANTHROPIC_API_KEY=your_key_here
-CLAUDE_MODEL=claude-sonnet-4-6      # optional, defaults to claude-sonnet-4-6
+OPENAI_API_KEY=
+DEEPSEEK_API_KEY=
+GEMINI_API_KEY=
 ```
+
+| Provider | Default model | Key required |
+|----------|--------------|--------------|
+| `claude` (default) | `claude-sonnet-4-6` | `ANTHROPIC_API_KEY` |
+| `openai` | `gpt-4o` | `OPENAI_API_KEY` |
+| `deepseek` | `deepseek-chat` | `DEEPSEEK_API_KEY` |
+| `gemini` | `gemini-1.5-pro` | `GEMINI_API_KEY` |
 
 Never commit your `.env` file. It is in `.gitignore`.
 
 ## Tech stack
 
-- [Claude](https://www.anthropic.com) (configurable via `CLAUDE_MODEL`) — AI reasoning
+- Claude / OpenAI / DeepSeek / Gemini (configurable via `LLM_PROVIDER`) — AI reasoning
 - [Streamlit](https://streamlit.io) — UI
 - [SciPy](https://scipy.org) — statistical tests
 - [Plotly](https://plotly.com) — interactive charts
