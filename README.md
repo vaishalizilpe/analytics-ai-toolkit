@@ -17,6 +17,41 @@ An AI-powered analytics reasoning suite built with Streamlit. Four interconnecte
 | 🔍 Root Cause Analysis | ✅ Live | Structured hypothesis matrix for metric drops, diagnostic SQL templates, prioritized next steps |
 | ⚖️ Metric Trade-offs | ✅ Live | Second-order effect mapping, metric hierarchy, guardrail recommendations |
 
+## Architecture
+
+Deterministic statistics are computed first, then handed to the model as ground truth, so the LLM interprets verified numbers rather than inventing them. The same app functions are run under a graded eval loop that gates CI.
+
+```mermaid
+flowchart TD
+    U(["User"]) -->|"metric inputs"| UI["Streamlit UI"]
+
+    UI --> AB["A/B Test Interpreter"]
+    UI --> SS["Sample Size Calculator"]
+    UI --> RCA["Root Cause Analysis"]
+    UI --> MT["Metric Trade-offs"]
+
+    AB -->|"raw counts"| STATS["SciPy stats engine<br/>deterministic ground truth<br/>z-test · Fisher · SRM · CIs · power"]
+    STATS -->|"verified numbers"| CLIENT["Model-agnostic LLM client"]
+    RCA --> CLIENT
+    MT --> CLIENT
+    CLIENT -.->|"one env var"| PROV["Claude · OpenAI · DeepSeek · Gemini"]
+    CLIENT -->|"interpretation"| OUT["Recommendation + follow-up"]
+    SS -->|"pure math, no LLM"| OUT
+    OUT --> U
+    OUT -.->|"JSON context handoff"| UI
+
+    subgraph EVAL["Eval and error-analysis loop"]
+        direction TB
+        DS["dataset.jsonl labeled cases"] --> H["harness runs the same app functions"]
+        H --> G["graders: deterministic + LLM-as-judge"]
+        G --> LEDGER["ERROR_ANALYSIS.md one change per cycle"]
+        G --> CI{"CI gate: pass rate ≥ 80%"}
+    end
+    AB -.->|"evaluated by"| H
+    RCA -.-> H
+    MT -.-> H
+```
+
 ## How the tools connect
 
 Each tool hands off context to the next via a JSON export:

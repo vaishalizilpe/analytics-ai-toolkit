@@ -6,23 +6,34 @@ deterministic stats (ground truth) with run_proportion_test, then asks the model
 to interpret them, so graders can check the interpretation against known-correct
 numbers.
 """
-from ab_test_interpreter.stats import run_proportion_test
-from ab_test_interpreter.interpreter import interpret_results
+from ab_test_interpreter.stats import run_proportion_test, run_ttest
+from ab_test_interpreter.interpreter import interpret_results, interpret_continuous_results
 from root_cause_analysis.rca import analyze_metric_movement
 from metric_tradeoffs.tradeoffs import analyze_tradeoffs
 
 
 def run_case(case):
-    """Return (output_text, context). context carries ground truth for graders."""
+    """Return (output_text, context). context carries ground truth for graders.
+
+    A/B cases carry input["kind"] = "proportion" (default) or "continuous" so the
+    same module label exercises both the z-test path and the Welch t-test path.
+    """
     module = case["module"]
     inp = case["input"]
 
     if module == "ab_test":
-        result = run_proportion_test(
-            inp["control_conversions"], inp["control_n"],
-            inp["treatment_conversions"], inp["treatment_n"],
-        )
-        output = interpret_results(result, inp["metric_name"], inp["experiment_context"])
+        if inp.get("kind") == "continuous":
+            result = run_ttest(
+                inp["control_mean"], inp["control_std"], inp["control_n"],
+                inp["treatment_mean"], inp["treatment_std"], inp["treatment_n"],
+            )
+            output = interpret_continuous_results(result, inp["metric_name"], inp["experiment_context"])
+        else:
+            result = run_proportion_test(
+                inp["control_conversions"], inp["control_n"],
+                inp["treatment_conversions"], inp["treatment_n"],
+            )
+            output = interpret_results(result, inp["metric_name"], inp["experiment_context"])
         return output, {"result": result}
 
     if module == "rca":

@@ -12,4 +12,6 @@ The improvement ledger for the toolkit's LLM outputs. Same discipline as a model
 ## Ledger
 | Date | Det. pass rate | Judge (corr/faith/act) | Biggest failure mode | ONE change made | Result next run |
 |---|---|---|---|---|---|
-| _seed_ | run to fill | run to fill | to be identified on first run | baseline, no change yet | pending |
+| pending | not yet run | not yet run | identify on first live run | none yet | Blocked on a valid `ANTHROPIC_API_KEY`. Set the key, run `python -m evals.run_evals --judge`, then fill this row and start the loop. |
+
+> This loop has not produced a baseline number yet. The graders and harness are unit-tested (`tests/test_evals_graders.py`), but a real pass rate requires one live run against the model, which needs a working API key. Until then this is a wired-up loop awaiting its first measurement, not a measured one.
