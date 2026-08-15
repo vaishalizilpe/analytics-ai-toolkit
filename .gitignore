@@ -1,4 +1,9 @@
 .env
+
+# Stray screenshots / photos. The committed demo asset is a .gif, kept on purpose.
+*.jpg
+*.jpeg
+
 __pycache__/
 *.pyc
 *.pyo

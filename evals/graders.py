@@ -25,8 +25,17 @@ def structure_fails(module, output):
     return [f"missing section: {s}" for s in REQUIRED_SECTIONS[module] if s not in up]
 
 
+# The RCA prompt requires a hypothesis matrix across these five categories.
+# Section-presence alone is gameable; this checks the matrix actually covers them.
+RCA_CATEGORIES = ["data quality", "product", "external", "segment", "marketing"]
+
+
 def ab_faithfulness_fails(output, result):
-    """Check the interpretation against the deterministic stats it was handed."""
+    """Check the interpretation against the deterministic stats it was handed.
+
+    Works for both the proportion result (has control_rate) and the continuous
+    result (has control_mean).
+    """
     fails = []
     low = output.lower()
 
@@ -42,26 +51,63 @@ def ab_faithfulness_fails(output, result):
     if result.srm_flagged and "sample ratio" not in low and "srm" not in low:
         fails.append("SRM flagged but never mentioned")
 
-    # Zero control rate: relative lift is undefined. The output must not quote a
-    # relative-lift value. Look just after each "relative lift" mention; a signed
-    # number or a percentage there is a violation, unless the text says undefined.
-    if result.control_rate == 0:
+    # Zero baseline (0% control rate, or 0 control mean): relative lift is
+    # undefined. The output must not quote a relative-lift value. Look just after
+    # each "relative lift" mention; a signed number or percentage there is a
+    # violation, unless the text says undefined.
+    baseline = getattr(result, "control_rate", None)
+    if baseline is None:
+        baseline = getattr(result, "control_mean", None)
+    if baseline == 0:
         for m in re.finditer(r"relative lift(.{0,25})", low):
             window = m.group(1)
             has_value = re.search(r"[-+]\d|\d+(\.\d+)?%", window)
             excused = any(w in window for w in ["undefined", "n/a", "cannot", "not defined"])
             if has_value and not excused:
-                fails.append("stated a relative-lift number at 0% control rate")
+                fails.append("stated a relative-lift number at 0 baseline")
                 break
 
     return fails
 
 
+def rca_faithfulness_fails(output):
+    """The hypothesis matrix must actually cover the categories, not just have a header."""
+    low = output.lower()
+    covered = sum(1 for c in RCA_CATEGORIES if c in low)
+    if covered < 4:
+        return [f"hypothesis matrix covers only {covered}/5 required categories"]
+    return []
+
+
+def tradeoffs_faithfulness_fails(output):
+    """The composite metric section must contain a real formula, not just a heading."""
+    up = output.upper()
+    if "COMPOSITE METRIC" not in up:
+        return ["no composite metric section"]
+    tail = up.split("COMPOSITE METRIC", 1)[-1]
+    has_equation = re.search(r"=[^=]", tail)
+    has_operator = re.search(r"[+\-*/×÷]|\bW\d|\bWEIGHT", tail)
+    if not (has_equation and has_operator):
+        return ["composite metric section has no formula/math expression"]
+    return []
+
+
 def deterministic_grade(case, output, ctx):
     """All no-API checks for a case. Returns a list of failure strings."""
-    fails = structure_fails(case["module"], output)
-    if case["module"] == "ab_test" and "result" in ctx:
+    module = case["module"]
+    fails = structure_fails(module, output)
+
+    if module == "ab_test" and "result" in ctx:
         fails += ab_faithfulness_fails(output, ctx["result"])
+        # Path assertions declared on the case (e.g. Fisher's exact must fire).
+        expect = case.get("expect", {})
+        if expect.get("fisher_used") and not getattr(ctx["result"], "fisher_used", False):
+            fails.append("expected Fisher's exact test but the z-test path was used")
+    elif module == "rca":
+        fails += rca_faithfulness_fails(output)
+    elif module == "tradeoffs":
+        fails += tradeoffs_faithfulness_fails(output)
+
     return fails
 
 

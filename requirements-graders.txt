@@ -1,0 +1,7 @@
+# Minimal deps for the deterministic grader unit tests in CI.
+# The graders and the stats engine need only numpy, scipy, and pytest. The full
+# app stack (streamlit, anthropic, openai, ...) is not required to run these,
+# which keeps the on-every-push CI job fast.
+pytest~=8.0
+numpy~=1.26
+scipy~=1.12
