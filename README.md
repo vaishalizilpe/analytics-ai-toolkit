@@ -19,37 +19,65 @@ An AI-powered analytics reasoning suite built with Streamlit. Four interconnecte
 
 ## Architecture
 
-Deterministic statistics are computed first, then handed to the model as ground truth, so the LLM interprets verified numbers rather than inventing them. The same app functions are run under a graded eval loop that gates CI.
+Deterministic statistics are computed first, then handed to the model as ground truth, so the LLM interprets verified numbers rather than inventing them. The full project, from the Streamlit UI through the tool logic and the model-agnostic client to the eval and CI quality gates:
 
 ```mermaid
 flowchart TD
-    U(["User"]) -->|"metric inputs"| UI["Streamlit UI"]
+    U(["User / Analyst"]) -->|"experiment or metric inputs"| APP["app.py (Streamlit entry)"]
 
-    UI --> AB["A/B Test Interpreter"]
-    UI --> SS["Sample Size Calculator"]
-    UI --> RCA["Root Cause Analysis"]
-    UI --> MT["Metric Trade-offs"]
-
-    AB -->|"raw counts"| STATS["SciPy stats engine<br/>deterministic ground truth<br/>z-test · Fisher · SRM · CIs · power"]
-    STATS -->|"verified numbers"| CLIENT["Model-agnostic LLM client"]
-    RCA --> CLIENT
-    MT --> CLIENT
-    CLIENT -.->|"one env var"| PROV["Claude · OpenAI · DeepSeek · Gemini"]
-    CLIENT -->|"interpretation"| OUT["Recommendation + follow-up"]
-    SS -->|"pure math, no LLM"| OUT
-    OUT --> U
-    OUT -.->|"JSON context handoff"| UI
-
-    subgraph EVAL["Eval and error-analysis loop"]
-        direction TB
-        DS["dataset.jsonl labeled cases"] --> H["harness runs the same app functions"]
-        H --> G["graders: deterministic + LLM-as-judge"]
-        G --> LEDGER["ERROR_ANALYSIS.md one change per cycle"]
-        G --> CI{"CI gate: pass rate ≥ 80%"}
+    subgraph UI["UI layer — pages/"]
+        P1["A/B Test Interpreter"]
+        P2["Sample Size Calculator"]
+        P3["Root Cause Analysis"]
+        P4["Metric Trade-offs"]
     end
-    AB -.->|"evaluated by"| H
+    APP --> P1
+    APP --> P2
+    APP --> P3
+    APP --> P4
+
+    subgraph LOGIC["Tool logic"]
+        STATS["ab_test_interpreter/stats.py<br/>z-test · Fisher · Welch · SRM · power · MDE · Bayesian"]
+        INT["ab_test_interpreter/interpreter.py"]
+        RCA["root_cause_analysis/rca.py"]
+        TRD["metric_tradeoffs/tradeoffs.py"]
+    end
+
+    P1 -->|"raw counts / means"| STATS
+    P2 --> STATS
+    STATS -->|"verified numbers (ground truth)"| INT
+    P3 --> RCA
+    P4 --> TRD
+
+    subgraph SHARED["shared/"]
+        CLIENT["claude_client.py<br/>model-agnostic router"]
+        PROMPTS["prompts.py"]
+    end
+
+    INT --> CLIENT
+    RCA --> CLIENT
+    TRD --> CLIENT
+    PROMPTS -.->|"system prompts"| CLIENT
+    CLIENT -.->|"LLM_PROVIDER env var"| PROV["Claude · OpenAI · DeepSeek · Gemini"]
+    CLIENT -->|"interpretation"| OUT["Recommendation + follow-up"]
+    OUT --> U
+    OUT -.->|"JSON context handoff"| APP
+
+    subgraph QUALITY["Quality gates"]
+        direction TB
+        DS["evals/dataset.jsonl"] --> H["evals/harness.py<br/>runs the real app functions"]
+        H --> G["evals/graders.py<br/>deterministic + LLM-as-judge"]
+        G --> LED["ERROR_ANALYSIS.md ledger"]
+        TST["tests/ — 73 unit tests"]
+        CI{"GitHub Actions<br/>graders every push · live eval weekly"}
+    end
+
+    STATS -.->|"tested by"| TST
+    INT -.->|"evaluated by"| H
     RCA -.-> H
-    MT -.-> H
+    TRD -.-> H
+    G --> CI
+    TST --> CI
 ```
 
 ## How the tools connect
