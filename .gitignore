@@ -4,6 +4,9 @@
 *.jpg
 *.jpeg
 
+# Eval run output. The directory is kept via .gitkeep; the runs themselves are generated.
+evals/results/*.json
+
 __pycache__/
 *.pyc
 *.pyo
