@@ -7,10 +7,15 @@ on:
   schedule:
     - cron: "0 16 * * 1"  # Mondays 16:00 UTC, weekly quality check
 
+# Read-only by default. No job here writes to the repo, so nothing needs more.
+permissions:
+  contents: read
+
 jobs:
   # Free on every push: unit-test the deterministic graders. No API key, no cost.
   grader-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -24,6 +29,13 @@ jobs:
   live-eval:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
+    # Without a timeout a hung API call runs to GitHub's 6-hour default.
+    timeout-minutes: 20
+    # One paid run at a time: a manual dispatch during the weekly cron would
+    # otherwise double the API spend and race on the uploaded artifact.
+    concurrency:
+      group: live-eval
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
