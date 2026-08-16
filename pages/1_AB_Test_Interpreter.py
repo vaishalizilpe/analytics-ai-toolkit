@@ -18,6 +18,7 @@ from ab_test_interpreter.visualizations import (
     null_distribution_chart, lift_vs_mde_chart, beta_posterior_chart,
 )
 from shared.constants import MIN_SAMPLE_SIZE
+from shared.rate_limit import enforce_quota, QuotaExceeded
 
 SRM_CAUSES = [
     ("Bot traffic", "One arm may have higher bot traffic. Check device type distribution and user agent patterns."),
@@ -324,6 +325,13 @@ with tab1:
         # ── AI Interpretation ────────────────────────────────────────────────
 
         st.subheader("AI Interpretation")
+
+        try:
+            enforce_quota()
+        except QuotaExceeded as e:
+            st.warning(str(e))
+            st.stop()
+
         with st.spinner("Claude is analyzing your results..."):
             try:
                 if is_proportion:
