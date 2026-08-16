@@ -105,6 +105,12 @@ def render_sidebar(current_tool: str = ""):
             unsafe_allow_html=True,
         )
 
+    # Imported here rather than at module scope so shared.ui stays importable
+    # without a Streamlit session for the pure-styling helpers below.
+    from shared.byok import render_key_input
+
+    render_key_input()
+
 
 def hero(icon: str, title: str, subtitle: str):
     st.markdown(

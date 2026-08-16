@@ -19,6 +19,7 @@ def analyze_tradeoffs(
     product_context: str,
     business_goal: str,
     secondary_metrics: str,
+    api_key: str | None = None,
 ) -> str:
     user_message = f"""
 Primary metric being optimized: {primary_metric}
@@ -56,4 +57,5 @@ Propose one composite metric or score that captures the right balance for this o
 ## RECOMMENDATION
 Ship / Don't Ship / Modify — with explicit assumptions stated. One clear paragraph.
 """
-    return ask_claude(METRIC_TRADEOFFS_SYSTEM_PROMPT, user_message, max_tokens=2000)
+    return ask_claude(METRIC_TRADEOFFS_SYSTEM_PROMPT, user_message, max_tokens=2000,
+                      api_key=api_key)

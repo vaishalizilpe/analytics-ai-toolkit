@@ -92,6 +92,7 @@ def analyze_metric_movement(
     product_context: str,
     known_events: str,
     affected_segments: list[str],
+    api_key: str | None = None,
 ) -> str:
     user_message = f"""
 Metric: {metric_name}
@@ -120,4 +121,5 @@ Rank by (likelihood x ease). For each: one concrete next step, stated as an acti
 ## RED FLAGS
 Any signals in the description that point to an urgent or high-severity root cause. Skip this section if none.
 """
-    return ask_claude(RCA_SYSTEM_PROMPT, user_message, max_tokens=2000)
+    return ask_claude(RCA_SYSTEM_PROMPT, user_message, max_tokens=2000,
+                      api_key=api_key)

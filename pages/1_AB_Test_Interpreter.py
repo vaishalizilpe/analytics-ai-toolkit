@@ -19,6 +19,7 @@ from ab_test_interpreter.visualizations import (
 )
 from shared.constants import MIN_SAMPLE_SIZE
 from shared.rate_limit import enforce_quota, QuotaExceeded
+from shared.byok import active_key
 
 SRM_CAUSES = [
     ("Bot traffic", "One arm may have higher bot traffic. Check device type distribution and user agent patterns."),
@@ -340,9 +341,13 @@ with tab1:
                         min_practical_effect=min_practical_effect,
                         n_metrics=int(n_metrics),
                         corrected_alpha=corrected_alpha,
+                        api_key=active_key(),
                     )
                 else:
-                    interpretation = interpret_continuous_results(result, metric_name, experiment_context)
+                    interpretation = interpret_continuous_results(
+                        result, metric_name, experiment_context,
+                        api_key=active_key(),
+                    )
                 st.markdown(interpretation)
             except EnvironmentError as e:
                 st.error(str(e))

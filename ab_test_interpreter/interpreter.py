@@ -13,6 +13,7 @@ def interpret_results(
     min_practical_effect: float = 0.0,
     n_metrics: int = 1,
     corrected_alpha: float = 0.05,
+    api_key: str | None = None,
 ) -> str:
     rel_lift_ci = (
         f"[{result.relative_lift_ci_lower:+.2%}, {result.relative_lift_ci_upper:+.2%}]"
@@ -54,10 +55,13 @@ If the lift is statistically significant but does not meet the practical signifi
 End with a clear RECOMMENDATION section: Ship / Don't Ship / Extend Test — and why.
 Also include a FOLLOW-UP section: what to investigate next (segments, guardrail metrics, duration concerns).
 """
-    return ask_claude(AB_TEST_SYSTEM_PROMPT, user_message, max_tokens=1500)
+    return ask_claude(AB_TEST_SYSTEM_PROMPT, user_message, max_tokens=1500,
+                      api_key=api_key)
 
 
-def interpret_continuous_results(result: ContinuousTestResult, metric_name: str, experiment_context: str) -> str:
+def interpret_continuous_results(result: ContinuousTestResult, metric_name: str,
+                                 experiment_context: str,
+                                 api_key: str | None = None) -> str:
     user_message = f"""
 Experiment context: {experiment_context}
 Metric: {metric_name} (continuous — mean comparison, Welch's t-test)
@@ -78,7 +82,8 @@ Interpret these results. If SRM is flagged, lead with that warning.
 End with a clear RECOMMENDATION section: Ship / Don't Ship / Extend Test — and why.
 Also include a FOLLOW-UP section: what to investigate next (segments, guardrail metrics, duration concerns).
 """
-    return ask_claude(AB_TEST_SYSTEM_PROMPT, user_message, max_tokens=1500)
+    return ask_claude(AB_TEST_SYSTEM_PROMPT, user_message, max_tokens=1500,
+                      api_key=api_key)
 
 
 def build_handoff_context(result: Union[ABTestResult, ContinuousTestResult], metric_name: str, experiment_context: str) -> dict:

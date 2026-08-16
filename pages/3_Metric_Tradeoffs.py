@@ -7,6 +7,7 @@ import json
 import streamlit as st
 from metric_tradeoffs.tradeoffs import analyze_tradeoffs, CHANGE_TYPES
 from shared.rate_limit import enforce_quota, QuotaExceeded
+from shared.byok import active_key
 
 st.set_page_config(page_title="Metric Trade-offs", page_icon="⚖️", layout="wide")
 
@@ -104,6 +105,7 @@ if submitted:
                 primary_metric=primary_metric, change_type=change_type,
                 change_description=change_description, product_context=product_context,
                 business_goal=business_goal or "not specified", secondary_metrics=secondary_metrics,
+                api_key=active_key(),
             )
             st.markdown(analysis)
         except EnvironmentError as e:

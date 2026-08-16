@@ -4,9 +4,9 @@ Usage caps for the public deployment.
 Every request to this app runs on the maintainer's API key, so an uncapped
 public URL is an open invitation to drain it. Two independent limits:
 
-  per session  — stops one visitor looping the form
-  per day      — stops many visitors, or one visitor across many sessions,
-                 from exhausting the budget
+  per session  stops one visitor looping the form
+  per day      stops many visitors, or one visitor across many sessions,
+               from exhausting the budget
 
 Both are advisory, not security. The daily counter lives in process memory via
 st.cache_resource, so it is shared across sessions on a single Streamlit
@@ -63,10 +63,11 @@ def _consume_daily(limit: int) -> None:
             counter["count"] = 0
         if counter["count"] >= limit:
             raise QuotaExceeded(
-                f"This demo has reached its daily limit of {limit} AI requests. "
-                "It runs on a personal API key, so the cap keeps costs predictable. "
-                "Please try again tomorrow, or run the app locally with your own "
-                "ANTHROPIC_API_KEY — see the README."
+                f"This demo has reached its shared daily limit of {limit} AI "
+                "requests. It runs on a personal API key, so the cap keeps costs "
+                "predictable. To keep going right now, add your own Anthropic key "
+                "under **Use your own API key** in the sidebar. Otherwise the "
+                "limit resets tomorrow."
             )
         counter["count"] += 1
 
@@ -77,9 +78,9 @@ def _consume_session(limit: int) -> None:
     used = st.session_state.get(_SESSION_KEY, 0)
     if used >= limit:
         raise QuotaExceeded(
-            f"You've used this session's limit of {limit} AI requests. "
-            "Reload the page to start a new session, or run the app locally "
-            "with your own ANTHROPIC_API_KEY — see the README."
+            f"You have used this session's limit of {limit} AI requests on the "
+            "shared key. Add your own Anthropic key under **Use your own API key** "
+            "in the sidebar to continue without limits."
         )
     st.session_state[_SESSION_KEY] = used + 1
 
@@ -91,7 +92,15 @@ def enforce_quota() -> None:
     Call immediately before an LLM request. The session limit is checked first
     so a single heavy user sees the session message rather than burning the
     shared daily budget.
+
+    Visitors using their own API key are exempt: the caps exist to protect the
+    maintainer's budget, and their requests do not touch it.
     """
+    from shared.byok import is_byok
+
+    if is_byok():
+        return
+
     _consume_session(_limit("MAX_CALLS_PER_SESSION", DEFAULT_PER_SESSION))
     try:
         _consume_daily(_limit("MAX_CALLS_PER_DAY", DEFAULT_PER_DAY))
