@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import json
 import streamlit as st
 from root_cause_analysis.rca import analyze_metric_movement, DIAGNOSTIC_QUERIES
+from shared.rate_limit import enforce_quota, QuotaExceeded
 
 st.set_page_config(
     page_title="Root Cause Analysis",
@@ -170,6 +171,12 @@ if submitted:
             st.code(q["sql"], language="sql")
 
     st.subheader("AI Root Cause Analysis")
+    try:
+        enforce_quota()
+    except QuotaExceeded as e:
+        st.warning(str(e))
+        st.stop()
+
     with st.spinner("Claude is building your hypothesis matrix..."):
         try:
             analysis = analyze_metric_movement(

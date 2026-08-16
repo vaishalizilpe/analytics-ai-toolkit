@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import json
 import streamlit as st
 from metric_tradeoffs.tradeoffs import analyze_tradeoffs, CHANGE_TYPES
+from shared.rate_limit import enforce_quota, QuotaExceeded
 
 st.set_page_config(page_title="Metric Trade-offs", page_icon="⚖️", layout="wide")
 
@@ -90,6 +91,13 @@ if submitted:
     s3.metric("Goal", business_goal or "not specified")
 
     st.subheader("AI Trade-off Analysis")
+
+    try:
+        enforce_quota()
+    except QuotaExceeded as e:
+        st.warning(str(e))
+        st.stop()
+
     with st.spinner("Claude is mapping the trade-off surface..."):
         try:
             analysis = analyze_tradeoffs(
