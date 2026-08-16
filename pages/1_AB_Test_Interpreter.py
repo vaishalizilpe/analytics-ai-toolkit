@@ -1,4 +1,4 @@
-"""A/B Test Interpreter — Streamlit page."""
+"""A/B Test Interpreter: Streamlit page."""
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -176,14 +176,14 @@ with tab1:
                 st.warning(
                     "Normal approximation invalid (n×p < 10 in one or more cells). "
                     "**Fisher's exact test** was used for the p-value. "
-                    "The confidence interval uses **Clopper-Pearson exact CIs** per arm — "
+                    "The confidence interval uses **Clopper-Pearson exact CIs** per arm, "
                     "valid for any sample size. The relative lift CI is not computed (requires normal approx)."
                 )
             if not result.significance_ci_consistent:
                 st.info(
                     "Note: the p-value and confidence interval give different significance signals. "
                     "This happens because the z-test uses pooled SE (correct for testing H₀: p₁=p₂) "
-                    "while the CI uses unpooled SE (correct for estimation). Both are methodologically valid — "
+                    "while the CI uses unpooled SE (correct for estimation). Both are methodologically valid, "
                     "the result is borderline and the two approaches bracket the decision boundary."
                 )
 
@@ -215,7 +215,7 @@ with tab1:
             m3.metric("Control mean", f"{result.control_mean:.3f}")
             m4.metric("Treatment mean", f"{result.treatment_mean:.3f}")
 
-        # Significance badge — includes relative lift CI for proportion tests
+        # Significance badge, includes relative lift CI for proportion tests
         sig_badge = "✅ Statistically significant" if result.is_significant else "❌ Not statistically significant"
         abs_ci = f"95% CI on absolute lift: [{result.ci_lower:+.4f}, {result.ci_upper:+.4f}]"
         if is_proportion and result.relative_lift_ci_lower is not None:
@@ -232,7 +232,7 @@ with tab1:
             corrected_label = "✅ passes" if corrected_significant else "❌ fails"
             st.caption(
                 f"Multiple testing correction (Benjamini-Hochberg FDR, {n_metrics} metrics): "
-                f"BH threshold α={corrected_alpha:.4f} — p={result.p_value:.4f} {corrected_label} the corrected threshold."
+                f"BH threshold α={corrected_alpha:.4f}, p={result.p_value:.4f} {corrected_label} the corrected threshold."
             )
 
         if min_practical_effect > 0 and result.is_significant:
@@ -241,7 +241,7 @@ with tab1:
                 st.warning(
                     f"Statistically significant, but the observed lift ({result.absolute_lift:+.4f}) "
                     f"is below your practical significance threshold ({min_practical_effect:.4f}). "
-                    "Consider not shipping — the effect may be real but too small to matter."
+                    "Consider not shipping, the effect may be real but too small to matter."
                 )
 
         # ── Charts ────────────────────────────────────────────────────────────
@@ -299,7 +299,7 @@ with tab1:
             with st.expander("Bayesian Analysis (Beta-Binomial)"):
                 st.caption(
                     "Frequentist p-values tell you P(data | H₀). "
-                    "The Bayesian posterior tells you P(treatment wins | data) — "
+                    "The Bayesian posterior tells you P(treatment wins | data), "
                     "which is what most PMs actually want to know."
                 )
                 with st.spinner("Running simulation..."):
@@ -320,7 +320,7 @@ with tab1:
                 )
                 st.caption(
                     "Uniform prior Beta(1,1). With large samples, the posterior converges to the frequentist result. "
-                    "At small samples, it regularizes toward 50/50 — which is often more honest than a sharp p-value."
+                    "At small samples, it regularizes toward 50/50, which is often more honest than a sharp p-value."
                 )
 
         # ── AI Interpretation ────────────────────────────────────────────────
@@ -368,7 +368,7 @@ with tab1:
                 st.page_link("pages/2_Root_Cause_Analysis.py", label="🔍 Diagnose with Root Cause Analysis →")
         with hcol2:
             if result.is_significant:
-                st.markdown("**Before you ship — check the second-order effects.**")
+                st.markdown("**Before you ship, check the second-order effects.**")
                 st.page_link("pages/3_Metric_Tradeoffs.py", label="⚖️ Analyze with Metric Trade-offs →")
 
         with st.expander("Export experiment context (for RCA / Trade-offs tools)"):
@@ -442,7 +442,7 @@ with tab2:
                 calc_mde_rel = calc_mde_abs / calc_baseline if calc_baseline > 0 else 0
 
             calc_daily = st.number_input(
-                "Daily users (optional — for duration estimate)",
+                "Daily users (optional, for duration estimate)",
                 min_value=0, value=0, step=500,
                 key="calc_daily",
             )
@@ -481,7 +481,7 @@ with tab2:
                 calc_mde_rel_c = calc_mde_abs_c / calc_baseline_mean if calc_baseline_mean > 0 else 0
 
             calc_daily = st.number_input(
-                "Daily users (optional — for duration estimate)",
+                "Daily users (optional, for duration estimate)",
                 min_value=0, value=0, step=500,
                 key="calc_daily_c",
             )
@@ -511,9 +511,9 @@ with tab2:
                 days = total / calc_daily
                 st.metric("Estimated test duration", f"{days:.1f} days ({days/7:.1f} weeks)")
                 if days < 7:
-                    st.warning("Under 7 days — run at least a full week to capture weekly seasonality.")
+                    st.warning("Under 7 days, run at least a full week to capture weekly seasonality.")
                 elif days > 56:
-                    st.warning("Over 8 weeks — consider raising your MDE or accepting a less strict α.")
+                    st.warning("Over 8 weeks, consider raising your MDE or accepting a less strict α.")
 
             if is_prop_calc:
                 target = calc_baseline + calc_mde_abs
@@ -552,6 +552,6 @@ with tab2:
                     st.caption("MDE sensitivity curve is available for conversion rate metrics.")
 
             st.caption(
-                "No Claude API call on this page — sample size is pure math. "
+                "No Claude API call on this page, sample size is pure math. "
                 "Run your experiment, then use the Analyze Results tab for AI interpretation."
             )

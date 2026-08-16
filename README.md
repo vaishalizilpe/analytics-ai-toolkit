@@ -1,6 +1,6 @@
 # Analytics AI Toolkit
 
-An AI-powered analytics reasoning suite built with Streamlit. Four interconnected tools that mirror how senior analysts actually think — not just dashboards, but reasoning engines. Swap LLM providers (Claude, OpenAI, DeepSeek, Gemini) with a single env var — no code changes required.
+An AI-powered analytics reasoning suite built with Streamlit. Four interconnected tools that mirror how senior analysts actually think: not just dashboards, but reasoning engines. Swap LLM providers (Claude, OpenAI, DeepSeek, Gemini) with a single env var. No code changes required.
 
 ## Live Demo
 
@@ -25,7 +25,7 @@ Deterministic statistics are computed first, then handed to the model as ground 
 flowchart TD
     U(["User / Analyst"]) -->|"experiment or metric inputs"| APP["app.py (Streamlit entry)"]
 
-    subgraph UI["UI layer — pages/"]
+    subgraph UI["UI layer: pages/"]
         P1["A/B Test Interpreter"]
         P2["Sample Size Calculator"]
         P3["Root Cause Analysis"]
@@ -68,7 +68,7 @@ flowchart TD
         DS["evals/dataset.jsonl"] --> H["evals/harness.py<br/>runs the real app functions"]
         H --> G["evals/graders.py<br/>deterministic + LLM-as-judge"]
         G --> LED["ERROR_ANALYSIS.md ledger"]
-        TST["tests/ — 73 unit tests"]
+        TST["tests/: 73 unit tests"]
         CI{"GitHub Actions<br/>graders every push · live eval weekly"}
     end
 
@@ -112,17 +112,17 @@ All tools load from one URL. Use the sidebar to navigate between them.
 ### 🧪 A/B Test Interpreter
 
 **Statistical engine**
-- Normal approximation validation — falls back to Fisher's exact test when n×p < 10
+- Normal approximation validation: falls back to Fisher's exact test when n×p < 10
 - Two-proportion z-test with Cohen's h effect size (arcsine transform, accurate at extreme rates)
 - Welch's t-test for continuous metrics (revenue, duration, engagement) with Welch-Satterthwaite df
 - 95% CI on absolute lift: Wald when normal approx holds, Clopper-Pearson exact when Fisher's is used
 - Relative lift CI via delta method
-- Configurable significance threshold (α slider: 0.01–0.20)
+- Configurable significance threshold (α slider: 0.01 to 0.20)
 - Multiple testing correction (Benjamini-Hochberg FDR) when testing multiple metrics simultaneously
 - Sample Ratio Mismatch detection with diagnostic checklist
 - CI vs. p-value consistency check (flags pooled/unpooled SE disagreement)
-- MDE adequacy check: "Was this test adequately powered?" — replaces misleading post-hoc power gauge
-- Power formula uses harmonic-mean effective n — correct for both equal and unequal traffic splits
+- MDE adequacy check: "Was this test adequately powered?" This replaces the misleading post-hoc power gauge
+- Power formula uses harmonic-mean effective n: correct for both equal and unequal traffic splits
 - Practical significance threshold: flags statistically significant but negligible lifts
 - Bayesian analysis: P(treatment > control) via Beta-Binomial simulation
 
@@ -151,7 +151,7 @@ All tools load from one URL. Use the sidebar to navigate between them.
 
 **Output:**
 - Immediate triage: data quality issue vs. real metric shift
-- Hypothesis matrix across 5 categories: Data Quality/Pipeline, Product/Feature Changes, External/Seasonality, User Segment Shifts, Marketing/Business — each rated by likelihood and ease to check
+- Hypothesis matrix across 5 categories: Data Quality/Pipeline, Product/Feature Changes, External/Seasonality, User Segment Shifts, Marketing/Business, each rated by likelihood and ease to check
 - Diagnostic SQL templates: event volume, null rates, segment breakdown, before/after deploy
 - Top 3 prioritized next steps
 
@@ -167,9 +167,9 @@ Input a metric and proposed change. Output:
 ## Environment
 
 ```
-# Choose your provider — only the matching API key is required
+# Choose your provider. Only the matching API key is required
 LLM_PROVIDER=claude          # claude | openai | deepseek | gemini
-LLM_MODEL=                   # optional — overrides the provider default
+LLM_MODEL=                   # optional, overrides the provider default
 
 ANTHROPIC_API_KEY=your_key_here
 OPENAI_API_KEY=
@@ -199,8 +199,8 @@ Tests cover: proportion z-test, Fisher's exact fallback, SRM detection, Welch's 
 
 ## Tech stack
 
-- Claude / OpenAI / DeepSeek / Gemini (configurable via `LLM_PROVIDER`) — AI reasoning
-- [Streamlit](https://streamlit.io) — UI
-- [SciPy](https://scipy.org) — statistical tests
-- [Plotly](https://plotly.com) — interactive charts
-- [python-dotenv](https://github.com/theskumar/python-dotenv) — environment config
+- Claude / OpenAI / DeepSeek / Gemini (configurable via `LLM_PROVIDER`): AI reasoning
+- [Streamlit](https://streamlit.io): UI
+- [SciPy](https://scipy.org): statistical tests
+- [Plotly](https://plotly.com): interactive charts
+- [python-dotenv](https://github.com/theskumar/python-dotenv): environment config

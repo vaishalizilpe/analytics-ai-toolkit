@@ -96,7 +96,7 @@ def analyze_metric_movement(
 ) -> str:
     user_message = f"""
 Metric: {metric_name}
-Movement: {movement_direction} — {magnitude}
+Movement: {movement_direction}, {magnitude}
 Time period: {time_period}
 Product / platform context: {product_context}
 Known events around this time: {known_events if known_events.strip() else "None specified"}

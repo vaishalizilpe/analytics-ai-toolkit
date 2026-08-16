@@ -2,7 +2,7 @@
 Tests for ab_test_interpreter/stats.py
 
 Run with: pytest tests/test_stats.py -v
-No API keys required — pure math, no LLM calls.
+No API keys required, pure math, no LLM calls.
 """
 
 import math
@@ -63,10 +63,10 @@ def test_cohens_h_symmetric():
     assert abs(cohens_h(0.1, 0.2)) == pytest.approx(abs(cohens_h(0.2, 0.1)), rel=1e-6)
 
 
-# ── run_proportion_test — happy path ─────────────────────────────────────────
+# ── run_proportion_test, happy path ─────────────────────────────────────────
 
 def test_proportion_significant_lift():
-    """Clear significant lift — should detect it."""
+    """Clear significant lift: should detect it."""
     result = run_proportion_test(
         control_conversions=300,
         control_n=10000,
@@ -100,7 +100,7 @@ def test_proportion_ci_contains_true_lift():
 
 
 def test_proportion_negative_lift():
-    """Treatment performs worse — lift should be negative."""
+    """Treatment performs worse: lift should be negative."""
     result = run_proportion_test(400, 10000, 300, 10000)
     assert result.absolute_lift < 0
     assert result.relative_lift < 0
@@ -126,7 +126,7 @@ def test_proportion_z_test_used_for_large_n():
     assert result.fisher_used is False
 
 
-# ── run_proportion_test — Fisher fallback ────────────────────────────────────
+# ── run_proportion_test, Fisher fallback ────────────────────────────────────
 
 def test_proportion_fisher_fallback_low_count():
     """n*p < 10 should trigger Fisher's exact test."""
@@ -154,7 +154,7 @@ def test_proportion_fisher_result_plausible():
     assert result.p_value < 0.05
 
 
-# ── run_proportion_test — SRM detection ──────────────────────────────────────
+# ── run_proportion_test, SRM detection ──────────────────────────────────────
 
 def test_proportion_srm_flagged_for_severe_imbalance():
     """50/50 expected split but 70/30 actual should flag SRM."""
@@ -192,7 +192,7 @@ def test_proportion_no_srm_for_intentional_unequal_split():
     assert bool(result.srm_flagged) is False
 
 
-# ── run_proportion_test — CI/significance consistency ────────────────────────
+# ── run_proportion_test, CI/significance consistency ────────────────────────
 
 def test_proportion_consistency_flag_set():
     """Result must always set significance_ci_consistent (Python or numpy bool)."""
@@ -200,7 +200,7 @@ def test_proportion_consistency_flag_set():
     assert isinstance(result.significance_ci_consistent, (bool, np.bool_))
 
 
-# ── run_proportion_test — custom alpha ────────────────────────────────────────
+# ── run_proportion_test, custom alpha ────────────────────────────────────────
 
 def test_proportion_alpha_respected():
     """Raising alpha to 0.20 should make a borderline result significant."""
