@@ -20,6 +20,16 @@ def reload_client(env_vars: dict):
         return mod
 
 
+def _text_response(text: str, stop_reason: str = "end_turn"):
+    """A minimal Anthropic response carrying one text block."""
+    block = MagicMock(type="text")
+    block.text = text
+    response = MagicMock()
+    response.stop_reason = stop_reason
+    response.content = [block]
+    return response
+
+
 # ── _resolve_model ────────────────────────────────────────────────────────────
 
 def test_resolve_model_defaults_to_sonnet(monkeypatch):
@@ -119,12 +129,56 @@ def test_gemini_raises_without_api_key():
 def test_max_tokens_passed_to_anthropic():
     mod = reload_client({"LLM_PROVIDER": "claude", "LLM_MODEL": ""})
 
-    fake_response = MagicMock()
-    fake_response.content = [MagicMock(text="answer")]
-
     with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"}):
         with patch("anthropic.Anthropic") as MockClient:
-            MockClient.return_value.messages.create.return_value = fake_response
+            MockClient.return_value.messages.create.return_value = _text_response("answer")
             mod._ask_anthropic("sys", "user", 300, "claude-sonnet-4-6")
             call_kwargs = MockClient.return_value.messages.create.call_args[1]
             assert call_kwargs["max_tokens"] == 300
+
+
+# ── stop_reason handling ──────────────────────────────────────────────────────
+
+def test_refusal_raises_rather_than_indexerror():
+    """A refusal returns HTTP 200 with empty content; indexing it would crash."""
+    mod = reload_client({"LLM_PROVIDER": "claude", "LLM_MODEL": ""})
+
+    refusal = MagicMock()
+    refusal.stop_reason = "refusal"
+    refusal.content = []
+
+    with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"}):
+        with patch("anthropic.Anthropic") as MockClient:
+            MockClient.return_value.messages.create.return_value = refusal
+            with pytest.raises(mod.LLMRefusal):
+                mod._ask_anthropic("sys", "user", 300, "claude-sonnet-4-6")
+
+
+def test_skips_non_text_blocks():
+    """Thinking blocks precede text; content[0].text would return the wrong block."""
+    mod = reload_client({"LLM_PROVIDER": "claude", "LLM_MODEL": ""})
+
+    response = MagicMock()
+    response.stop_reason = "end_turn"
+    thinking = MagicMock(type="thinking")
+    text = MagicMock(type="text")
+    text.text = "the answer"
+    response.content = [thinking, text]
+
+    with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"}):
+        with patch("anthropic.Anthropic") as MockClient:
+            MockClient.return_value.messages.create.return_value = response
+            assert mod._ask_anthropic("sys", "user", 300, "claude-sonnet-4-6") == "the answer"
+
+
+def test_truncation_is_flagged_to_the_user():
+    mod = reload_client({"LLM_PROVIDER": "claude", "LLM_MODEL": ""})
+
+    with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "test-key"}):
+        with patch("anthropic.Anthropic") as MockClient:
+            MockClient.return_value.messages.create.return_value = _text_response(
+                "partial", stop_reason="max_tokens"
+            )
+            out = mod._ask_anthropic("sys", "user", 300, "claude-sonnet-4-6")
+            assert out.startswith("partial")
+            assert "truncated" in out.lower()

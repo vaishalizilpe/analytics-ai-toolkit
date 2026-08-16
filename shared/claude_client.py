@@ -25,6 +25,14 @@ _DEFAULTS = {
 _SUPPORTED = set(_DEFAULTS.keys())
 
 
+class LLMRefusal(RuntimeError):
+    """The model declined the request (Anthropic returns HTTP 200 for this)."""
+
+
+class LLMEmptyResponse(RuntimeError):
+    """The response carried no text block."""
+
+
 def _resolve_model() -> str:
     if _MODEL_OVERRIDE:
         return _MODEL_OVERRIDE
@@ -53,7 +61,30 @@ def _ask_anthropic(system_prompt: str, user_message: str, max_tokens: int, model
         system=system_prompt,
         messages=[{"role": "user", "content": user_message}],
     )
-    return message.content[0].text
+
+    # A refusal returns HTTP 200 with an empty content list, so indexing
+    # content[0] would raise IndexError instead of surfacing why. Check
+    # stop_reason before reading content.
+    if message.stop_reason == "refusal":
+        raise LLMRefusal(
+            "The model declined to answer this request. Rephrasing the "
+            "business context usually resolves it."
+        )
+
+    text = next(
+        (block.text for block in message.content if block.type == "text"), None
+    )
+    if text is None:
+        raise LLMEmptyResponse(
+            f"The model returned no text (stop_reason: {message.stop_reason})."
+        )
+
+    if message.stop_reason == "max_tokens":
+        text += (
+            "\n\n_[Response truncated at the output limit. "
+            "Narrow the question for a complete answer.]_"
+        )
+    return text
 
 
 def _ask_openai_compatible(system_prompt: str, user_message: str, max_tokens: int, model: str) -> str:
