@@ -12,6 +12,6 @@ The improvement ledger for the toolkit's LLM outputs. Same discipline as a model
 ## Ledger
 | Date | Det. pass rate | Judge (corr/faith/act) | Biggest failure mode | ONE change made | Result next run |
 |---|---|---|---|---|---|
-| pending | not yet run | not yet run | identify on first live run | none yet | Blocked on a valid `ANTHROPIC_API_KEY`. Set the key, run `python -m evals.run_evals --judge`, then fill this row and start the loop. |
+| 2026-08-15 | 83% (10/12) | 4.83 / 4.83 / 5.0 | Model drops a required section on a specific input: RCA omits TOP 3 PRIORITIES (rca_conversion_drop), trade-offs omits COMPOSITE METRIC (tradeoffs_pricing), one case each | Baseline, no change | Baseline set |
 
-> This loop has not produced a baseline number yet. The graders and harness are unit-tested (`tests/test_evals_graders.py`), but a real pass rate requires one live run against the model, which needs a working API key. Until then this is a wired-up loop awaiting its first measurement, not a measured one.
+> First real run recorded 2026-08-15 (run via `env -u ANTHROPIC_API_KEY python -m evals.run_evals --judge`, a stale shell key had been shadowing the .env key). Deterministic pass rate 83% (10/12); LLM-judge averages 4.83 correctness, 4.83 faithfulness, 5.0 actionability. Both failures are the model omitting one required section on a specific input. Next cycle: read the actual header the model emits on the failing RCA case to decide genuine-omission vs grader-too-strict, then fix the right layer.
