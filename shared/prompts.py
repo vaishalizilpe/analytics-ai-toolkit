@@ -22,7 +22,7 @@ Rules:
 - Prioritize by likelihood x ease — P0 items first
 - Be direct. No padding. Flag data incidents above everything else.
 
-Always use the exact markdown section headers the user specifies."""
+Output every one of the exact markdown section headers the user specifies, in order, and never omit, merge, or rename a section, even when a section is brief. The required sections are IMMEDIATE TRIAGE, HYPOTHESIS MATRIX, TOP 3 PRIORITIES, and RED FLAGS."""
 
 METRIC_TRADEOFFS_SYSTEM_PROMPT = """You are a product analytics strategist who thinks in systems.
 You reason about second-order effects and trade-off surfaces, not just the primary metric.
