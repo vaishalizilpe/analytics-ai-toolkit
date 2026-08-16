@@ -46,10 +46,14 @@ def _resolve_model() -> str:
 
 # ── Provider implementations ──────────────────────────────────────────────────
 
-def _ask_anthropic(system_prompt: str, user_message: str, max_tokens: int, model: str) -> str:
+def _ask_anthropic(system_prompt: str, user_message: str, max_tokens: int, model: str,
+                   api_key: str | None = None) -> str:
     import anthropic
 
-    api_key = os.getenv("ANTHROPIC_API_KEY")
+    # An explicitly passed key wins over the environment. It is threaded in
+    # as an argument rather than read from a global so that a per-visitor key
+    # can never leak across concurrent sessions.
+    api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise EnvironmentError(
             "ANTHROPIC_API_KEY not found. Copy .env.example to .env and add your key."
@@ -132,17 +136,21 @@ def _ask_gemini(system_prompt: str, user_message: str, max_tokens: int, model: s
 
 # ── Public interface (signature unchanged) ────────────────────────────────────
 
-def ask_claude(system_prompt: str, user_message: str, max_tokens: int = 1500) -> str:
+def ask_claude(system_prompt: str, user_message: str, max_tokens: int = 1500,
+               api_key: str | None = None) -> str:
     """
     Send a prompt to the configured LLM provider.
 
     Provider is controlled by LLM_PROVIDER env var (default: claude).
     Model is controlled by LLM_MODEL env var (optional, falls back to provider default).
+
+    api_key overrides the environment for this call only. It exists so a
+    visitor can supply their own key without it ever becoming global state.
     """
     model = _resolve_model()
 
     if _PROVIDER == "claude":
-        return _ask_anthropic(system_prompt, user_message, max_tokens, model)
+        return _ask_anthropic(system_prompt, user_message, max_tokens, model, api_key)
     elif _PROVIDER in ("openai", "deepseek"):
         return _ask_openai_compatible(system_prompt, user_message, max_tokens, model)
     elif _PROVIDER == "gemini":

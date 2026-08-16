@@ -7,6 +7,7 @@ import json
 import streamlit as st
 from root_cause_analysis.rca import analyze_metric_movement, DIAGNOSTIC_QUERIES
 from shared.rate_limit import enforce_quota, QuotaExceeded
+from shared.byok import active_key
 
 st.set_page_config(
     page_title="Root Cause Analysis",
@@ -187,6 +188,7 @@ if submitted:
                 product_context=product_context or "not specified",
                 known_events=known_events,
                 affected_segments=segments,
+                api_key=active_key(),
             )
             st.markdown(analysis)
         except EnvironmentError as e:
