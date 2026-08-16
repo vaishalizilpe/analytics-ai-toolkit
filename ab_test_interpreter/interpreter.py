@@ -28,9 +28,9 @@ def interpret_results(
     multi_test_note = (
         f"Benjamini-Hochberg FDR threshold (across {n_metrics} metrics): α={corrected_alpha:.4f}. "
         f"p-value {'passes' if result.p_value < corrected_alpha else 'does NOT pass'} the corrected threshold."
-        if n_metrics > 1 else "Single metric test — no multiple testing correction applied."
+        if n_metrics > 1 else "Single metric test, no multiple testing correction applied."
     )
-    test_method = "Fisher's exact test (normal approximation invalid — low count cells)" if result.fisher_used else "Two-proportion z-test"
+    test_method = "Fisher's exact test (normal approximation invalid, low count cells)" if result.fisher_used else "Two-proportion z-test"
 
     user_message = f"""
 Experiment context: {experiment_context}
@@ -52,7 +52,7 @@ Results:
 
 Interpret these results. If SRM is flagged, lead with that warning.
 If the lift is statistically significant but does not meet the practical significance threshold, say so explicitly in the recommendation.
-End with a clear RECOMMENDATION section: Ship / Don't Ship / Extend Test — and why.
+End with a clear RECOMMENDATION section: Ship / Don't Ship / Extend Test, and why.
 Also include a FOLLOW-UP section: what to investigate next (segments, guardrail metrics, duration concerns).
 """
     return ask_claude(AB_TEST_SYSTEM_PROMPT, user_message, max_tokens=1500,
@@ -64,7 +64,7 @@ def interpret_continuous_results(result: ContinuousTestResult, metric_name: str,
                                  api_key: str | None = None) -> str:
     user_message = f"""
 Experiment context: {experiment_context}
-Metric: {metric_name} (continuous — mean comparison, Welch's t-test)
+Metric: {metric_name} (continuous, mean comparison, Welch's t-test)
 
 Results:
 - Control: mean={result.control_mean:.4f}, std={result.control_std:.4f}, n={result.control_n:,}
@@ -79,7 +79,7 @@ Results:
 - Sample Ratio Mismatch detected: {result.srm_flagged} (SRM p-value: {result.srm_p_value:.4f})
 
 Interpret these results. If SRM is flagged, lead with that warning.
-End with a clear RECOMMENDATION section: Ship / Don't Ship / Extend Test — and why.
+End with a clear RECOMMENDATION section: Ship / Don't Ship / Extend Test, and why.
 Also include a FOLLOW-UP section: what to investigate next (segments, guardrail metrics, duration concerns).
 """
     return ask_claude(AB_TEST_SYSTEM_PROMPT, user_message, max_tokens=1500,

@@ -1,4 +1,4 @@
-"""Shared UI helpers — CSS injection, sidebar, page headers."""
+"""Shared UI helpers: CSS injection, sidebar, page headers."""
 import streamlit as st
 
 AUTHOR = "Vaishali Zilpe"

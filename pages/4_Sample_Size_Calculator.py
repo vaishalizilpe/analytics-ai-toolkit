@@ -1,4 +1,4 @@
-"""Sample Size Calculator — Streamlit page."""
+"""Sample Size Calculator: Streamlit page."""
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -19,7 +19,7 @@ with st.sidebar:
 st.title("📐 Sample Size Calculator")
 st.markdown(
     "Plan your A/B test before you run it. "
-    "Enter your baseline and the smallest effect worth detecting — get the sample size you need."
+    "Enter your baseline and the smallest effect worth detecting, get the sample size you need."
 )
 
 metric_type = st.selectbox(
@@ -84,7 +84,7 @@ with col_inputs:
         )
 
         daily_traffic = st.number_input(
-            "Total daily users (optional — for duration estimate)",
+            "Total daily users (optional, for duration estimate)",
             min_value=0, value=0, step=100,
             help="Leave at 0 to skip the duration estimate.",
         )
@@ -126,7 +126,7 @@ with col_inputs:
         )
 
         daily_traffic = st.number_input(
-            "Total daily users (optional — for duration estimate)",
+            "Total daily users (optional, for duration estimate)",
             min_value=0, value=0, step=100,
             help="Leave at 0 to skip the duration estimate.",
         )
@@ -203,6 +203,6 @@ with col_results:
     st.table(mde_rows)
 
     st.caption(
-        "No Claude API call on this page — sample size is pure math. "
+        "No Claude API call on this page, sample size is pure math. "
         "Once you have your results, use the A/B Test Interpreter for AI-powered analysis."
     )

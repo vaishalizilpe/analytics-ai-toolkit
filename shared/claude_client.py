@@ -4,7 +4,7 @@ Model-agnostic LLM client.
 Swap providers by setting LLM_PROVIDER in your .env file.
 Supported: claude (default), openai, deepseek, gemini
 
-The function signature of ask_claude() is unchanged — no other files need editing.
+The function signature of ask_claude() is unchanged, so no other files need editing.
 """
 
 import os
@@ -124,7 +124,7 @@ def _ask_gemini(system_prompt: str, user_message: str, max_tokens: int, model: s
         raise EnvironmentError("GEMINI_API_KEY not found.")
 
     genai.configure(api_key=api_key)
-    # Gemini doesn't have a separate system role — prepend to user message
+    # Gemini doesn't have a separate system role, prepend to user message
     full_prompt = f"{system_prompt}\n\n{user_message}"
     gemini_model = genai.GenerativeModel(model)
     response = gemini_model.generate_content(

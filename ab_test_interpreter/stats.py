@@ -1,4 +1,4 @@
-"""Pure statistical logic — no Claude, no Streamlit."""
+"""Pure statistical logic: no Claude, no Streamlit."""
 import numpy as np
 from scipy import stats
 from dataclasses import dataclass
@@ -47,7 +47,7 @@ class ABTestResult:
     srm_flagged: bool
     normal_approx_valid: bool  # False triggers Fisher fallback
     fisher_used: bool
-    # Pooled SE (test) vs unpooled SE (CI) can disagree — flag it explicitly
+    # Pooled SE (test) vs unpooled SE (CI) can disagree, flag it explicitly
     significance_ci_consistent: bool
 
 
@@ -86,7 +86,7 @@ def run_proportion_test(
         p_value = float(2 * (1 - stats.norm.cdf(abs(z_stat))))
         fisher_used = False
     else:
-        # Fisher's exact test — valid for any sample size, no distributional assumptions
+        # Fisher's exact test, valid for any sample size, no distributional assumptions
         table = [
             [control_conversions, control_n - control_conversions],
             [treatment_conversions, treatment_n - treatment_conversions],
@@ -98,7 +98,7 @@ def run_proportion_test(
     z_critical = stats.norm.ppf(1 - alpha / 2)
 
     if not fisher_used:
-        # Wald CI — valid when normal approximation holds.
+        # Wald CI, valid when normal approximation holds.
         se = np.sqrt(
             (control_rate * (1 - control_rate) / control_n)
             + (treatment_rate * (1 - treatment_rate) / treatment_n)
@@ -108,7 +108,7 @@ def run_proportion_test(
     else:
         # Clopper-Pearson exact CI per arm, then propagate to the difference.
         # CP lower/upper for each arm: Beta(k, n-k+1) and Beta(k+1, n-k) quantiles.
-        # CI on the difference: (p2_lower - p1_upper, p2_upper - p1_lower) — conservative
+        # CI on the difference: (p2_lower - p1_upper, p2_upper - p1_lower), conservative
         # but always valid regardless of sample size or conversion rate.
         alpha_cp = alpha  # same nominal level
         ctrl_lo = float(stats.beta.ppf(alpha_cp / 2, control_conversions, control_n - control_conversions + 1)) \
@@ -122,7 +122,7 @@ def run_proportion_test(
         ci_lower = trt_lo - ctrl_hi
         ci_upper = trt_hi - ctrl_lo
 
-    # Relative lift CI via delta method (requires normal approx — not valid for Fisher fallback).
+    # Relative lift CI via delta method (requires normal approx, not valid for Fisher fallback).
     # Set to None when Fisher's was used, matching the treatment of relative_lift itself.
     if control_rate > 0 and not fisher_used:
         var_p1 = control_rate * (1 - control_rate) / control_n
@@ -141,7 +141,7 @@ def run_proportion_test(
     is_significant = p_value < alpha
     significance_ci_consistent = is_significant == ci_excludes_zero
 
-    # Power via Cohen's h (arcsine transform) — correct for proportions at extreme rates.
+    # Power via Cohen's h (arcsine transform), correct for proportions at extreme rates.
     # Retained for MDE adequacy check in the UI; not displayed as a gauge (see Gelman).
     # Uses harmonic-mean effective n so unequal splits are handled correctly.
     effect_size = abs(cohens_h(control_rate, treatment_rate)) if (control_rate + treatment_rate) > 0 else 0
@@ -211,7 +211,7 @@ def run_ttest(
     absolute_lift = treatment_mean - control_mean
     relative_lift = absolute_lift / control_mean if control_mean != 0 else None
 
-    # Welch's t-test — does not assume equal variances
+    # Welch's t-test, does not assume equal variances
     var_c = control_std ** 2 / control_n
     var_t = treatment_std ** 2 / treatment_n
     se = np.sqrt(var_c + var_t)
@@ -359,7 +359,7 @@ def minimum_detectable_effect(
     alpha: float = 0.05,
     power: float = 0.8,
 ) -> float:
-    """MDE using actual arm sizes — correct for unequal splits."""
+    """MDE using actual arm sizes: correct for unequal splits."""
     z_alpha = stats.norm.ppf(1 - alpha / 2)
     z_power = stats.norm.ppf(power)
     se = np.sqrt(baseline_rate * (1 - baseline_rate) * (1 / n_control + 1 / n_treatment))

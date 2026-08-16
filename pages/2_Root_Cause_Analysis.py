@@ -1,4 +1,4 @@
-"""Root Cause Analysis — Streamlit page."""
+"""Root Cause Analysis: Streamlit page."""
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -21,7 +21,7 @@ with st.sidebar:
 st.title("🔍 Root Cause Analysis")
 st.markdown(
     "Describe a metric movement. Get a structured hypothesis matrix, diagnostic SQL templates, "
-    "and AI-powered analysis — organized by priority."
+    "and AI-powered analysis, organized by priority."
 )
 
 with st.expander("Import experiment context from A/B Test Interpreter (optional)"):
@@ -38,7 +38,7 @@ with st.expander("Import experiment context from A/B Test Interpreter (optional)
             if handoff.get("source") == "ab_test_interpreter":
                 lift = handoff.get("lift")
                 st.success(
-                    f"Loaded: **{handoff.get('metric', '?')}** — "
+                    f"Loaded: **{handoff.get('metric', '?')}**, "
                     f"lift {lift:+.1%}" + (", not significant" if not handoff.get("significant") else ", significant")
                     if lift is not None
                     else f"Loaded: **{handoff.get('metric', '?')}**"
@@ -145,7 +145,7 @@ if submitted:
         st.info(f"Known events: {known_events}")
 
     st.subheader("Diagnostic Query Templates")
-    st.caption("Run these first — ruling out data issues eliminates false alarms before you hypothesize.")
+    st.caption("Run these first, ruling out data issues eliminates false alarms before you hypothesize.")
 
     tab_dq, tab_seg, tab_deploy = st.tabs([
         "1. Data Quality / Pipeline",
@@ -156,19 +156,19 @@ if submitted:
     with tab_dq:
         st.markdown("Start here. A logging bug or pipeline failure can mimic any metric drop.")
         for q in DIAGNOSTIC_QUERIES["Data Quality / Pipeline"]:
-            st.markdown(f"**{q['name']}** — *{q['description']}*")
+            st.markdown(f"**{q['name']}**, *{q['description']}*")
             st.code(q["sql"], language="sql")
 
     with tab_seg:
         st.markdown("Break the aggregate into segments. The drop is usually concentrated in one slice.")
         for q in DIAGNOSTIC_QUERIES["User Segment Shifts"]:
-            st.markdown(f"**{q['name']}** — *{q['description']}*")
+            st.markdown(f"**{q['name']}**, *{q['description']}*")
             st.code(q["sql"], language="sql")
 
     with tab_deploy:
         st.markdown("If there was a recent deploy or campaign, compare the metric before and after.")
         for q in DIAGNOSTIC_QUERIES["Product / Feature Changes"]:
-            st.markdown(f"**{q['name']}** — *{q['description']}*")
+            st.markdown(f"**{q['name']}**, *{q['description']}*")
             st.code(q["sql"], language="sql")
 
     st.subheader("AI Root Cause Analysis")

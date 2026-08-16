@@ -55,7 +55,7 @@ Which specific metrics should be guardrails for this change? What degradation th
 Propose one composite metric or score that captures the right balance for this optimization. Include its formula.
 
 ## RECOMMENDATION
-Ship / Don't Ship / Modify — with explicit assumptions stated. One clear paragraph.
+Ship / Don't Ship / Modify, with explicit assumptions stated. One clear paragraph.
 """
     return ask_claude(METRIC_TRADEOFFS_SYSTEM_PROMPT, user_message, max_tokens=2000,
                       api_key=api_key)

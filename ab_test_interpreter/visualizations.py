@@ -31,7 +31,7 @@ def confidence_interval_plot(result: ABTestResult, metric_name: str) -> go.Figur
 
     title_suffix = "SIGNIFICANT" if result.is_significant else "NOT SIGNIFICANT"
     fig.update_layout(
-        title=f"{metric_name} — 95% Confidence Interval ({title_suffix})",
+        title=f"{metric_name}: 95% Confidence Interval ({title_suffix})",
         xaxis_title="Absolute lift",
         height=200,
         showlegend=False,
@@ -124,7 +124,7 @@ def null_distribution_chart(p_value: float, absolute_lift: float, alpha: float) 
 
     verdict = "significant" if is_sig else "not significant"
     fig.update_layout(
-        title=f"Null Distribution — p = {p_value:.4f} ({verdict} at α = {alpha})",
+        title=f"Null Distribution: p = {p_value:.4f} ({verdict} at α = {alpha})",
         xaxis_title="Test statistic (z)",
         yaxis=dict(visible=False),
         xaxis=dict(gridcolor="#f0f0f0", zeroline=False),
@@ -170,11 +170,11 @@ def lift_vs_mde_chart(
     fig.add_vline(x=mde, line_dash="dot", line_color=mde_color, line_width=1.5,
                   annotation_text=f"+MDE\n{mde:.4f}", annotation_position="top right")
     fig.add_vline(x=-mde, line_dash="dot", line_color=mde_color, line_width=1.5,
-                  annotation_text=f"−MDE", annotation_position="top left")
+                  annotation_text=f"-MDE", annotation_position="top left")
 
     adequacy_label = "Adequately powered" if adequately_powered else "Underpowered"
     fig.update_layout(
-        title=f"Observed Lift vs MDE — {adequacy_label}",
+        title=f"Observed Lift vs MDE: {adequacy_label}",
         xaxis_title="Absolute lift",
         yaxis=dict(visible=False, range=[-1, 1]),
         xaxis=dict(gridcolor="#f0f0f0", zeroline=False),
@@ -225,7 +225,7 @@ def beta_posterior_chart(
                   annotation_text=f"{mean_t:.3%}", annotation_position="top right")
 
     fig.update_layout(
-        title=f"Posterior Distributions — P(Treatment wins) = {prob_treatment_wins:.1%}",
+        title=f"Posterior Distributions: P(Treatment wins) = {prob_treatment_wins:.1%}",
         xaxis_title="Conversion rate",
         xaxis=dict(tickformat=".2%", gridcolor="#f0f0f0"),
         yaxis=dict(visible=False),

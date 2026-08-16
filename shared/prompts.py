@@ -19,7 +19,7 @@ Rules:
 - Generate hypotheses across all five categories: Data Quality/Pipeline, Product/Feature Changes, External/Seasonality, User Segment Shifts, Marketing/Business Changes
 - Rate each hypothesis by likelihood (High/Medium/Low) and ease to check (High/Medium/Low)
 - Suggest one specific data cut or SQL query per hypothesis to confirm or rule it out
-- Prioritize by likelihood x ease — P0 items first
+- Prioritize by likelihood x ease: P0 items first
 - Be direct. No padding. Flag data incidents above everything else.
 
 Output every one of the exact markdown section headers the user specifies, in order, and never omit, merge, or rename a section, even when a section is brief. The required sections are IMMEDIATE TRIAGE, HYPOTHESIS MATRIX, TOP 3 PRIORITIES, and RED FLAGS."""
@@ -33,7 +33,7 @@ Rules:
 - Be explicit about which trade-offs are acceptable given the business goal
 - Propose concrete guardrail metrics with rollback thresholds
 - Always propose one composite metric formula
-- Never invent case studies — only cite real examples you are confident about
+- Never invent case studies: only cite real examples you are confident about
 - End with a clear Ship / Don't Ship / Modify recommendation with explicit assumptions
 
 Think like a PM-analyst hybrid. Generic answers are not acceptable."""

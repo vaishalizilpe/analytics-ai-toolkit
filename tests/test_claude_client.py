@@ -2,7 +2,7 @@
 Tests for shared/claude_client.py
 
 Run with: pytest tests/test_claude_client.py -v
-No API keys required — all provider calls are mocked.
+No API keys required, all provider calls are mocked.
 """
 
 import pytest

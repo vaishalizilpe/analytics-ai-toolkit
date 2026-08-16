@@ -1,4 +1,4 @@
-"""Analytics AI Toolkit — home page."""
+"""Analytics AI Toolkit: home page."""
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -17,7 +17,7 @@ with st.sidebar:
 st.title("📊 Analytics AI Toolkit")
 st.markdown(
     "An AI-powered analytics reasoning suite that mirrors how senior analysts actually think. "
-    "Three interconnected tools — pick the one that fits your situation."
+    "Three interconnected tools. Pick the one that fits your situation."
 )
 
 st.divider()
