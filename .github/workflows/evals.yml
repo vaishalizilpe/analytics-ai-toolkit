@@ -4,8 +4,10 @@ on:
   push:
   pull_request:
   workflow_dispatch:      # run the live eval on demand
-  schedule:
-    - cron: "0 16 * * 1"  # Mondays 16:00 UTC, weekly quality check
+  # Weekly cron removed 2026-09-10. live-eval needs ANTHROPIC_API_KEY, which is
+  # not set as a repo secret, so every scheduled run failed and emailed. Four
+  # consecutive Mondays (Aug 17, 24, 31, Sep 7). Re-add the cron only after the
+  # secret exists, or the same failure resumes.
 
 # Read-only by default. No job here writes to the repo, so nothing needs more.
 permissions:
